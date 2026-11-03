@@ -3,7 +3,7 @@
   import { Dialog } from "bits-ui";
   import { X } from "@lucide/svelte";
   import type { Snippet } from "svelte";
-  import { fadeIn, pop } from "../lib/motion";
+  import { pop } from "../lib/motion";
 
   let {
     open = $bindable(false),
@@ -40,11 +40,11 @@
 
 <Dialog.Root bind:open={() => open, onOpenChange}>
   <Dialog.Portal>
-    <Dialog.Overlay forceMount>
-      {#snippet child({ props, open: o })}
-        {#if o}<div {...props} class="backdrop" transition:fadeIn></div>{/if}
-      {/snippet}
-    </Dialog.Overlay>
+    <!-- The backdrop stays mounted and fades with CSS on data-state. A Svelte
+         outro here never finished, which left it over the window after the
+         dialog closed; unmounting through bits-ui's presence skipped it on
+         the first open. -->
+    <Dialog.Overlay forceMount class="backdrop" />
     <Dialog.Content forceMount {onOpenAutoFocus}>
       {#snippet child({ props, open: o })}
         {#if o}
