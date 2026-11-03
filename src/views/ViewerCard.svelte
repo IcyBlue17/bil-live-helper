@@ -48,31 +48,33 @@
   <Popover.Portal>
     <Popover.Content class="popover viewer-card" customAnchor={ui.viewer?.anchor ?? null} side="left" align="start" sideOffset={12} collisionPadding={12} onOpenAutoFocus={(e) => e.preventDefault()}>
       {@const name = card?.name ?? ui.viewer?.name ?? ""}
-      <div class="vc-head">
-        <Avatar src={card?.face} {name} size={44} />
-        <div class="vc-id">
-          <div class="vc-name">
-            <b>{name}</b>
-            {#if card?.level}<span class="ul num">UL{card.level}</span>{/if}
+      <div class="vc-main">
+        <div class="vc-head">
+          <Avatar src={card?.face} {name} size={40} />
+          <div class="vc-id">
+            <div class="vc-name">
+              <b>{name}</b>
+              {#if card?.level}<span class="ul num">UL{card.level}</span>{/if}
+            </div>
+            <span class="mono num">UID {ui.viewer?.uid ?? ""}</span>
           </div>
-          <span class="muted num">UID {ui.viewer?.uid ?? ""}</span>
         </div>
+        {#if error}
+          <p class="vc-error">{error}</p>
+        {:else if !card}
+          <div class="vc-loading"><span class="skel" style="height:12px;width:70%"></span><span class="skel" style="height:12px;width:45%"></span></div>
+        {:else}
+          {#if card.sign}<p class="vc-sign">{card.sign}</p>{/if}
+          <div class="vc-tags">
+            {#if card.guard}<span class="tag tag-guard-{card.guard}">{guardName[card.guard]}</span>{/if}
+            {#if card.medal}<span class="medal"><span>{card.medal.name}</span><b class="num">{card.medal.level}</b></span>{/if}
+            <span class="vc-fans"><Users class="icon" /><span class="num">{compact(card.followers)}</span> 粉丝</span>
+            {#if card.muted}<span class="badge badge-red"><Ban class="icon" />禁言中</span>{/if}
+          </div>
+        {/if}
       </div>
-      {#if error}
-        <p class="vc-error">{error}</p>
-      {:else if !card}
-        <div class="vc-loading"><span class="skel" style="height:12px;width:70%"></span><span class="skel" style="height:12px;width:45%"></span></div>
-      {:else}
-        {#if card.sign}<p class="vc-sign">{card.sign}</p>{/if}
-        <div class="vc-tags">
-          {#if card.guard}<span class="tag tag-guard-{card.guard}">{guardName[card.guard]}</span>{/if}
-          {#if card.medal}<span class="medal"><span>{card.medal.name}</span><b class="num">{card.medal.level}</b></span>{/if}
-          <span class="vc-fans"><Users class="icon" /><span class="num">{compact(card.followers)}</span> 粉丝</span>
-          {#if card.muted}<span class="badge badge-red"><Ban class="icon" />禁言中</span>{/if}
-        </div>
-      {/if}
       <div class="vc-actions">
-        <button class="btn btn-ghost btn-sm" onclick={() => ui.viewer && openURL(spaceURL(ui.viewer.uid))}><ExternalLink class="icon" />主页</button>
+        <button class="btn btn-ghost btn-sm" onclick={() => ui.viewer && openURL(spaceURL(ui.viewer.uid))}>主页<ExternalLink class="icon" /></button>
         <span class="vc-spacer"></span>
         {#if card?.muted}
           <span class="vc-muted"><ShieldCheck class="icon" />已禁言</span>

@@ -39,30 +39,36 @@
   }
 </script>
 
-{#if loadError}
-  <div class="empty empty-sm"><p>公告加载失败</p><p class="muted">{loadError}</p><button class="btn btn-secondary btn-sm" onclick={() => void load()}>重试</button></div>
-{:else}
-  <div class="announce">
-    <label class="label" for="announce-input">直播间公告<span class="muted">显示在直播间简介区</span></label>
-    <textarea
-      id="announce-input"
-      class="input textarea"
-      class:invalid={count > MAX}
-      rows="3"
-      placeholder={saved === null ? "加载中…" : "写点什么告诉观众吧"}
-      disabled={saved === null}
-      bind:value={text}
-      onkeydown={(e) => (e.ctrlKey || e.metaKey) && e.key === "Enter" && void save()}
-    ></textarea>
-    <div class="form-help">
-      <span class="error-text">{count > MAX ? `公告最多 ${MAX} 个字` : ""}</span>
-      <span class="counter num" class:near={count > MAX - 6 && count <= MAX} class:over={count > MAX}>{count}/{MAX}</span>
+<section class="card">
+  {#if loadError}
+    <div class="empty"><p>公告加载失败</p><p>{loadError}</p><button class="btn btn-secondary btn-sm" onclick={() => void load()}>重试</button></div>
+  {:else}
+    <div class="section-body announce">
+      <label class="section-title" for="announce-input">直播间公告</label>
+      <p class="section-desc">显示在直播间简介区，所有观众可见。</p>
+      <textarea
+        id="announce-input"
+        class="input textarea"
+        class:invalid={count > MAX}
+        rows="4"
+        placeholder={saved === null ? "加载中…" : "写点什么告诉观众吧"}
+        disabled={saved === null}
+        bind:value={text}
+        onkeydown={(e) => (e.ctrlKey || e.metaKey) && e.key === "Enter" && void save()}
+      ></textarea>
+      <div class="form-help">
+        <span class="error-text">{count > MAX ? `公告最多 ${MAX} 个字` : ""}</span>
+        <span class="counter num" class:near={count > MAX - 6 && count <= MAX} class:over={count > MAX}>{count}/{MAX}</span>
+      </div>
     </div>
-    <div class="announce-actions">
-      <button class="btn btn-ghost btn-sm" class:invisible={!dirty} disabled={!dirty || saving} onclick={() => (text = saved ?? "")}>撤销</button>
-      <button class="btn btn-secondary btn-sm" disabled={!dirty || count > MAX || saving} onclick={() => void save()}>
-        {#if saving}<span class="spinner"></span>保存中…{:else}更新公告{/if}
-      </button>
-    </div>
-  </div>
-{/if}
+    <footer class="section-foot">
+      <span>最多 {MAX} 个字，<kbd>Ctrl</kbd> <kbd>Enter</kbd> 保存。</span>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" class:invisible={!dirty} disabled={!dirty || saving} onclick={() => (text = saved ?? "")}>撤销</button>
+        <button class="btn btn-primary btn-sm" disabled={!dirty || count > MAX || saving} onclick={() => void save()}>
+          {#if saving}<span class="spinner"></span>保存中…{:else}保存{/if}
+        </button>
+      </div>
+    </footer>
+  {/if}
+</section>
