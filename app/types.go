@@ -5,9 +5,6 @@ package app
 
 import "time"
 
-// Version is the app's version, shown in the about panel.
-const Version = "0.1.0"
-
 // User is the logged-in Bilibili account.
 type User struct {
 	UID  int64  `json:"uid"`
@@ -340,8 +337,23 @@ type LogEntry struct {
 // AppInfo describes the build.
 type AppInfo struct {
 	Version string `json:"version"`
+	// CanUpdate is true for release builds that update themselves; false in
+	// development and package-manager installs.
+	CanUpdate bool `json:"canUpdate"`
 	// Demo is true when the app runs with fake data (BLH_DEMO=1).
 	Demo bool `json:"demo"`
 	// ConfigPath is where the login and settings are stored.
 	ConfigPath string `json:"configPath"`
+}
+
+// UpdateStatus is what System.UpdateStatus reports.
+type UpdateStatus struct {
+	// CanUpdate is false when this build cannot update itself.
+	CanUpdate bool `json:"canUpdate"`
+	// Available is a newer version found by the last check, "" for none.
+	Available string `json:"available"`
+	// LastCheck is when the app last checked, null before the first check.
+	LastCheck *time.Time `json:"lastCheck"`
+	// AutoDownload installs updates without asking, at the next launch.
+	AutoDownload bool `json:"autoDownload"`
 }

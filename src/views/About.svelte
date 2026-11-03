@@ -1,9 +1,17 @@
 <script lang="ts">
-  import { ExternalLink, Info } from "@lucide/svelte";
+  import { ExternalLink, Info, RefreshCw } from "@lucide/svelte";
   import Kbd from "../components/Kbd.svelte";
   import Mark from "../components/Mark.svelte";
   import Modal from "../components/Modal.svelte";
   import { app, openURL, ui } from "../lib/state.svelte";
+  import { System, events, type UpdateStatus } from "../mygo";
+
+  let update = $state<UpdateStatus | null>(null);
+  $effect(() => {
+    if (!ui.aboutOpen) return;
+    void System.updateStatus().then((s) => (update = s));
+    return events.updateChanged.on((s) => (update = s));
+  });
 
   const REPO_URL = "https://github.com/IcyBlue17/bil-live-helper";
   const UPSTREAM_URL = "https://github.com/chenxi-Eumenides/bilibili_live_tool";
@@ -35,6 +43,18 @@
       {#each shortcuts as [keys, what] (what)}
         <div class="shortcut"><span>{what}</span><Kbd {keys} /></div>
       {/each}
+    </div>
+    <h4>更新</h4>
+    <div class="shortcut">
+      <span>
+        {#if !update}检查中…
+        {:else if !update.canUpdate}当前版本不支持自动更新（开发版或包管理器安装）
+        {:else if update.available}发现新版本 v{update.available}
+        {:else}已是最新版本{/if}
+      </span>
+      {#if update?.canUpdate}
+        <button class="btn btn-secondary" onclick={() => System.checkForUpdates()}><RefreshCw class="icon" />检查更新</button>
+      {/if}
     </div>
     <h4>配置文件</h4>
     <code class="config-path">{app.info?.configPath ?? "—"}</code>
