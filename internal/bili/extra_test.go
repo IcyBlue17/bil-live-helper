@@ -3,10 +3,12 @@ package bili
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -356,6 +358,126 @@ func TestStatsTracker(t *testing.T) {
 	}
 	if s.snapshot(now.Add(5*time.Second)) != nil {
 		t.Fatal("expected nil when clean")
+	}
+}
+
+// TestStartFaceAuthRefresh: the first face QR expires (poll budget runs out),
+// the backend re-issues startLive for a new QR, sends a "二维码已刷新"
+// faceAuth update, then the second attempt verifies.
+func TestStartFaceAuthRefresh(t *testing.T) {
+	old := facePollInterval
+	facePollInterval = time.Millisecond
+	t.Cleanup(func() { facePollInterval = old })
+
+	b := testBackend(t)
+	var startCalls atomic.Int32
+	mux := http.NewServeMux()
+	mux.HandleFunc("/xlive/app-blink/v1/liveVersionInfo/getHomePageLiveVersion", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(okEnvelope(map[string]any{"curr_version": "7.41.0.10090", "build": 10090}))
+	})
+	mux.HandleFunc("/room/v1/Room/startLive", func(w http.ResponseWriter, r *http.Request) {
+		n := startCalls.Add(1)
+		switch n {
+		case 1:
+			w.Write([]byte(`{"code":60024,"message":"需要人脸","data":{"qr":"https://example.com/face-1"}}`))
+		case 2:
+			w.Write([]byte(`{"code":60024,"message":"需要人脸","data":{"qr":"https://example.com/face-2"}}`))
+		default:
+			w.Write(okEnvelope(map[string]any{"rtmp": map[string]any{
+				"addr": "rtmp://push/live-bvc/", "code": "?streamname=live_x&key=K"}}))
+		}
+	})
+	mux.HandleFunc("/xlive/app-blink/v1/preLive/IsUserIdentifiedByFaceAuth", func(w http.ResponseWriter, r *http.Request) {
+		// Identified only once the second QR is being polled.
+		identified := startCalls.Load() >= 2
+		w.Write(okEnvelope(map[string]any{"is_identified": identified}))
+	})
+	mux.HandleFunc("/room/v1/Room/get_info", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(okEnvelope(map[string]any{"room_id": 22637261, "uid": 1, "title": "t",
+			"live_status": 1, "area_id": 21, "live_time": "2026-11-03 20:00:00"}))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	pointAll(b, srv.URL)
+	loginForTest(b)
+	b.cfg.update(func(d *configData) { d.AreaID = 21; d.Title = "t" })
+
+	var faces []*app.QRUpdate
+	stream, err := b.Start(context.Background(), func(u app.StartUpdate) error {
+		if u.Stage == app.StartFaceAuth && u.Face != nil {
+			f := *u.Face
+			faces = append(faces, &f)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stream.Addr != "rtmp://push/live-bvc/" {
+		t.Fatalf("stream = %+v", stream)
+	}
+	if startCalls.Load() != 3 {
+		t.Fatalf("startLive calls = %d", startCalls.Load())
+	}
+	// Expect: waiting(qr1) → waiting(qr2, "二维码已刷新") → done.
+	if len(faces) != 3 {
+		t.Fatalf("faces = %d", len(faces))
+	}
+	if faces[0].Code == nil || faces[0].Code.URL != "https://example.com/face-1" {
+		t.Fatalf("face0 = %+v", faces[0])
+	}
+	if faces[1].Code == nil || faces[1].Code.URL != "https://example.com/face-2" ||
+		faces[1].Message != "二维码已刷新" {
+		t.Fatalf("face1 = %+v", faces[1])
+	}
+	if faces[2].Stage != app.QRDone {
+		t.Fatalf("face2 = %+v", faces[2])
+	}
+}
+
+// TestStartFaceAuthRefreshLimit: every QR expires → fail after
+// faceAuthMaxRefresh refreshes.
+func TestStartFaceAuthRefreshLimit(t *testing.T) {
+	old := facePollInterval
+	facePollInterval = time.Millisecond
+	t.Cleanup(func() { facePollInterval = old })
+
+	b := testBackend(t)
+	var startCalls atomic.Int32
+	mux := http.NewServeMux()
+	mux.HandleFunc("/xlive/app-blink/v1/liveVersionInfo/getHomePageLiveVersion", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(okEnvelope(map[string]any{"curr_version": "7.41.0.10090", "build": 10090}))
+	})
+	mux.HandleFunc("/room/v1/Room/startLive", func(w http.ResponseWriter, r *http.Request) {
+		n := startCalls.Add(1)
+		w.Write([]byte(fmt.Sprintf(
+			`{"code":60024,"message":"需要人脸","data":{"qr":"https://example.com/face-%d"}}`, n)))
+	})
+	mux.HandleFunc("/xlive/app-blink/v1/preLive/IsUserIdentifiedByFaceAuth", func(w http.ResponseWriter, r *http.Request) {
+		w.Write(okEnvelope(map[string]any{"is_identified": false}))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	pointAll(b, srv.URL)
+	loginForTest(b)
+	b.cfg.update(func(d *configData) { d.AreaID = 21; d.Title = "t" })
+
+	waiting := 0
+	_, err := b.Start(context.Background(), func(u app.StartUpdate) error {
+		if u.Stage == app.StartFaceAuth && u.Face != nil && u.Face.Stage == app.QRWaiting {
+			waiting++
+		}
+		return nil
+	})
+	if err == nil {
+		t.Fatal("expected failure after max refreshes")
+	}
+	// 1 original + faceAuthMaxRefresh refreshes shown; then gives up.
+	if waiting != 1+faceAuthMaxRefresh {
+		t.Fatalf("waiting updates = %d", waiting)
+	}
+	if startCalls.Load() != int32(1+faceAuthMaxRefresh) {
+		t.Fatalf("startLive calls = %d", startCalls.Load())
 	}
 }
 

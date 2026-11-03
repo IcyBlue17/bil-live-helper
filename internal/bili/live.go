@@ -15,6 +15,17 @@ import (
 
 var shanghai = time.FixedZone("Asia/Shanghai", 8*3600)
 
+// facePollInterval is how often IsUserIdentifiedByFaceAuth is polled
+// (a var so tests can shrink it).
+var facePollInterval = time.Second
+
+const (
+	// facePollBudget bounds one QR's polling window (interval × budget).
+	facePollBudget = 300 // ≈5min
+	// faceAuthMaxRefresh is how many times an expired face QR is re-issued.
+	faceAuthMaxRefresh = 3
+)
+
 // room fetches room/v1/Room/get_info and maps it to app.RoomInfo.
 func (b *Backend) room(ctx context.Context) (app.RoomInfo, error) {
 	cfg := b.cfg.get()
@@ -252,8 +263,10 @@ func (b *Backend) startLiveOnce(ctx context.Context) (addr, code, faceQR string,
 	}
 }
 
-// checkFaceAuth polls IsUserIdentifiedByFaceAuth (≤5 min) like live.py.
-func (b *Backend) checkFaceAuth(ctx context.Context) bool {
+// checkFaceAuth polls IsUserIdentifiedByFaceAuth until it reports the user
+// verified, the ctx is done, or pollBudget runs out (a stand-in for the QR
+// expiring — the endpoint has no dedicated expiry code).
+func (b *Backend) checkFaceAuth(ctx context.Context, pollBudget int) (ok bool, expired bool) {
 	cfg := b.cfg.get()
 	form := url.Values{
 		"room_id":        {strconv.FormatInt(cfg.RoomID, 10)},
@@ -262,22 +275,21 @@ func (b *Backend) checkFaceAuth(ctx context.Context) bool {
 		"csrf":           {cfg.CSRF},
 		"visit_id":       {""},
 	}
-	deadline := time.Now().Add(5 * time.Minute)
-	for time.Now().Before(deadline) {
+	for i := 0; i < pollBudget; i++ {
 		var d struct {
 			IsIdentified bool `json:"is_identified"`
 		}
 		if err := b.cli.postForm(ctx, b.cli.liveAPI+"/xlive/app-blink/v1/preLive/IsUserIdentifiedByFaceAuth",
 			form, b.cli.liveHeaders(), &d); err == nil && d.IsIdentified {
-			return true
+			return true, false
 		}
 		select {
 		case <-ctx.Done():
-			return false
-		case <-time.After(time.Second):
+			return false, false
+		case <-time.After(facePollInterval):
 		}
 	}
-	return false
+	return false, true
 }
 
 // start runs the broadcast start flow with the channel updates.
@@ -291,27 +303,40 @@ func (b *Backend) start(ctx context.Context, update func(app.StartUpdate) error)
 	if err != nil {
 		return app.StreamInfo{}, fmt.Errorf("开播失败: %w", err)
 	}
-	if faceQR != "" {
+
+	// Face-auth: the QR may expire while polling; re-issue startLive for a
+	// fresh code, at most faceAuthMaxRefresh times.
+	for refreshes := 0; faceQR != ""; {
 		svg, _ := qrSVG(faceQR)
+		msg := "请使用哔哩哔哩 App 扫码完成人脸认证"
+		if refreshes > 0 {
+			msg = "二维码已刷新"
+		}
 		if err := update(app.StartUpdate{
 			Stage:   app.StartFaceAuth,
-			Face:    &app.QRUpdate{Stage: app.QRWaiting, Code: &app.QRCode{URL: faceQR, SVG: svg}, Message: "请使用哔哩哔哩 App 扫码完成人脸认证"},
+			Face:    &app.QRUpdate{Stage: app.QRWaiting, Code: &app.QRCode{URL: faceQR, SVG: svg}, Message: msg},
 			Message: "需要人脸认证",
 		}); err != nil {
 			return app.StreamInfo{}, err
 		}
-		if !b.checkFaceAuth(ctx) {
+		ok, expired := b.checkFaceAuth(ctx, facePollBudget)
+		if !ok && !expired {
 			return app.StreamInfo{}, errors.New("人脸认证未完成或已取消")
 		}
-		if err := update(app.StartUpdate{Stage: app.StartFaceAuth, Face: &app.QRUpdate{Stage: app.QRDone, Message: "人脸认证完成"}, Message: "人脸认证完成，正在重新开播…"}); err != nil {
-			return app.StreamInfo{}, err
+		if ok {
+			if err := update(app.StartUpdate{Stage: app.StartFaceAuth, Face: &app.QRUpdate{Stage: app.QRDone, Message: "人脸认证完成"}, Message: "人脸认证完成，正在重新开播…"}); err != nil {
+				return app.StreamInfo{}, err
+			}
+		} else { // expired
+			refreshes++
+			if refreshes > faceAuthMaxRefresh {
+				return app.StreamInfo{}, errors.New("人脸认证二维码已过期多次，请重试")
+			}
+			app.Logf(app.LogWarn, fmt.Sprintf("人脸认证二维码已过期，正在刷新（%d/%d）", refreshes, faceAuthMaxRefresh))
 		}
 		addr, code, faceQR, err = b.startLiveOnce(ctx)
 		if err != nil {
 			return app.StreamInfo{}, fmt.Errorf("开播失败: %w", err)
-		}
-		if faceQR != "" {
-			return app.StreamInfo{}, errors.New("人脸认证后仍需验证，请稍后再试")
 		}
 	}
 
