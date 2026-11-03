@@ -256,11 +256,11 @@ func (b *Backend) startLiveOnce(ctx context.Context) (addr, code, faceQR string,
 func (b *Backend) checkFaceAuth(ctx context.Context) bool {
 	cfg := b.cfg.get()
 	form := url.Values{
-		"room_id":       {strconv.FormatInt(cfg.RoomID, 10)},
+		"room_id":        {strconv.FormatInt(cfg.RoomID, 10)},
 		"face_auth_code": {"60024"},
-		"csrf_token":    {cfg.CSRF},
-		"csrf":          {cfg.CSRF},
-		"visit_id":      {""},
+		"csrf_token":     {cfg.CSRF},
+		"csrf":           {cfg.CSRF},
+		"visit_id":       {""},
 	}
 	deadline := time.Now().Add(5 * time.Minute)
 	for time.Now().Before(deadline) {

@@ -64,17 +64,17 @@ func newClient(cookies func() map[string]string) *client {
 // liveHeaders mirrors live.py _get_headers.
 func (c *client) liveHeaders() http.Header {
 	h := http.Header{
-		"Accept":            {"application/json, text/plain, */*"},
-		"Accept-Language":   {"zh-CN,zh;q=0.9,en;q=0.8"},
-		"Origin":            {"https://link.bilibili.com"},
-		"Referer":           {"https://link.bilibili.com/p/center/index"},
-		"Sec-Ch-Ua":         {`"Microsoft Edge";v="137", "Not=A?Brand";v="8", "Chromium";v="137"`},
-		"Sec-Ch-Ua-Mobile":  {"?0"},
+		"Accept":             {"application/json, text/plain, */*"},
+		"Accept-Language":    {"zh-CN,zh;q=0.9,en;q=0.8"},
+		"Origin":             {"https://link.bilibili.com"},
+		"Referer":            {"https://link.bilibili.com/p/center/index"},
+		"Sec-Ch-Ua":          {`"Microsoft Edge";v="137", "Not=A?Brand";v="8", "Chromium";v="137"`},
+		"Sec-Ch-Ua-Mobile":   {"?0"},
 		"Sec-Ch-Ua-Platform": {`"Windows"`},
-		"Sec-Fetch-Dest":    {"empty"},
-		"Sec-Fetch-Mode":    {"cors"},
-		"Sec-Fetch-Site":    {"same-site"},
-		"User-Agent":        {userAgent},
+		"Sec-Fetch-Dest":     {"empty"},
+		"Sec-Fetch-Mode":     {"cors"},
+		"Sec-Fetch-Site":     {"same-site"},
+		"User-Agent":         {userAgent},
 	}
 	return h
 }

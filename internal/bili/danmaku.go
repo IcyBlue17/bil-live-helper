@@ -141,6 +141,7 @@ func (b *Backend) watch(ctx context.Context, send func(app.FeedEvent) error) err
 	retry := 0
 	backoff := time.Second
 	first := true
+	stats := newStatsTracker()
 
 	for {
 		if ctx.Err() != nil {
@@ -158,7 +159,7 @@ func (b *Backend) watch(ctx context.Context, send func(app.FeedEvent) error) err
 		host := hosts[retry%len(hosts)]
 		wsURL := fmt.Sprintf("wss://%s:%d/sub", host.Host, host.WSSPort)
 
-		err := b.danmakuSession(ctx, wsURL, roomID, token, first, send, sendState)
+		err := b.danmakuSession(ctx, wsURL, roomID, token, first, send, sendState, stats)
 		first = false
 		if ctx.Err() != nil {
 			_ = sendState(app.ConnClosed)
@@ -188,7 +189,7 @@ func (b *Backend) watch(ctx context.Context, send func(app.FeedEvent) error) err
 var errSendFailed = errors.New("bili: feed send failed")
 
 // danmakuSession runs one websocket connection until it breaks.
-func (b *Backend) danmakuSession(ctx context.Context, wsURL string, roomID int64, token string, first bool, send func(app.FeedEvent) error, sendState func(app.ConnState) error) error {
+func (b *Backend) danmakuSession(ctx context.Context, wsURL string, roomID int64, token string, first bool, send func(app.FeedEvent) error, sendState func(app.ConnState) error, stats *statsTracker) error {
 	conn, _, err := websocket.Dial(ctx, wsURL, &websocket.DialOptions{
 		HTTPHeader: http.Header{"User-Agent": {userAgent}},
 	})
@@ -250,7 +251,7 @@ func (b *Backend) danmakuSession(ctx context.Context, wsURL string, roomID int64
 			if !ok {
 				return errors.New("bili: websocket closed")
 			}
-			if err := b.handleFrame(data, first, send, sendState); err != nil {
+			if err := b.handleFrame(data, first, send, sendState, stats); err != nil {
 				return err
 			}
 			first = false
@@ -259,7 +260,7 @@ func (b *Backend) danmakuSession(ctx context.Context, wsURL string, roomID int64
 }
 
 // handleFrame decodes one websocket frame and forwards events.
-func (b *Backend) handleFrame(data []byte, first bool, send func(app.FeedEvent) error, sendState func(app.ConnState) error) error {
+func (b *Backend) handleFrame(data []byte, first bool, send func(app.FeedEvent) error, sendState func(app.ConnState) error, stats *statsTracker) error {
 	uid := b.cfg.get().UID
 	connectedSent := false
 	return parsePackets(data, func(h header, body []byte) error {
@@ -295,11 +296,26 @@ func (b *Backend) handleFrame(data []byte, first bool, send func(app.FeedEvent) 
 			if err := json.Unmarshal(body, &cmd); err != nil {
 				return nil // ignore undecodable commands
 			}
-			m := parseCommand(cmd, uid)
-			if m == nil {
+			ev := app.FeedEvent{}
+			watched, online, likes := counterCmd(cmd)
+			ev.Watched, ev.Online, ev.Likes = watched, online, likes
+			if online > 0 {
+				stats.online(online, time.Now())
+			}
+			if m := parseCommand(cmd, uid); m != nil {
+				if m.Kind == app.KindDanmaku && b.blocked(m.Text) {
+					// Still update counters, but hide the message.
+				} else {
+					stats.record(m)
+					ev.Message = m
+					b.maybeNotify(m)
+				}
+			}
+			ev.Stats = stats.snapshot(time.Now())
+			if ev.Message == nil && ev.Watched == 0 && ev.Online == 0 && ev.Likes == 0 && ev.Stats == nil {
 				return nil
 			}
-			if err := send(app.FeedEvent{Message: m}); err != nil {
+			if err := send(ev); err != nil {
 				return errSendFailed
 			}
 		}
@@ -314,6 +330,11 @@ func (b *Backend) sendDanmaku(ctx context.Context, text string) error {
 	} else if n > 40 {
 		return fmt.Errorf("弹幕过长（%d/40 字）", n)
 	}
+	return b.sendMsg(ctx, url.Values{"msg": {text}})
+}
+
+// sendMsg POSTs msg/send; extra carries msg/dm_type overrides.
+func (b *Backend) sendMsg(ctx context.Context, extra url.Values) error {
 	cfg := b.cfg.get()
 	if cfg.RoomID <= 0 || cfg.CSRF == "" {
 		return errNotLogged
@@ -324,7 +345,6 @@ func (b *Backend) sendDanmaku(ctx context.Context, text string) error {
 	}
 	form := url.Values{
 		"bubble":     {"0"},
-		"msg":        {text},
 		"color":      {"16777215"},
 		"mode":       {"1"},
 		"fontsize":   {"25"},
@@ -332,6 +352,9 @@ func (b *Backend) sendDanmaku(ctx context.Context, text string) error {
 		"roomid":     {strconv.FormatInt(cfg.RoomID, 10)},
 		"csrf":       {cfg.CSRF},
 		"csrf_token": {cfg.CSRF},
+	}
+	for k, vs := range extra {
+		form[k] = append([]string(nil), vs...)
 	}
 	u := b.cli.liveAPI + "/msg/send?" + params.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(form.Encode()))
@@ -373,5 +396,3 @@ func danmakuErrMsg(code int64, msg string) string {
 	}
 	return "发送失败"
 }
-
-

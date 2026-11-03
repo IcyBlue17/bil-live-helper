@@ -11,9 +11,9 @@ import (
 // It is constructed cheaply: no I/O happens until the first call, so
 // `mygo generate` (which runs main without a window) stays side-effect free.
 type Backend struct {
-	cli  *client
-	cfg  *config
-	wbi  *wbiSigner
+	cli *client
+	cfg *config
+	wbi *wbiSigner
 
 	mu        sync.Mutex
 	areaCache []app.AreaGroup
@@ -79,6 +79,50 @@ func (b *Backend) Watch(ctx context.Context, send func(app.FeedEvent) error) err
 
 func (b *Backend) SendDanmaku(ctx context.Context, text string) error {
 	return b.sendDanmaku(ctx, text)
+}
+
+func (b *Backend) Announcement(ctx context.Context) (string, error) {
+	return b.announcement(ctx)
+}
+
+func (b *Backend) SetAnnouncement(ctx context.Context, text string) error {
+	return b.setAnnouncement(ctx, text)
+}
+
+func (b *Backend) Rank(ctx context.Context, kind app.RankKind) ([]app.RankUser, error) {
+	return b.rank(ctx, kind)
+}
+
+func (b *Backend) Emoticons(ctx context.Context) ([]app.EmoticonPackage, error) {
+	return b.emoticons(ctx)
+}
+
+func (b *Backend) SendEmoticon(ctx context.Context, token string) error {
+	return b.sendEmoticon(ctx, token)
+}
+
+func (b *Backend) Viewer(ctx context.Context, uid int64) (app.ViewerCard, error) {
+	return b.viewer(ctx, uid)
+}
+
+func (b *Backend) Mute(ctx context.Context, uid int64, hours int) error {
+	return b.mute(ctx, uid, hours)
+}
+
+func (b *Backend) Unmute(ctx context.Context, id int64) error {
+	return b.unmute(ctx, id)
+}
+
+func (b *Backend) Muted(ctx context.Context) ([]app.MutedUser, error) {
+	return b.muted(ctx)
+}
+
+func (b *Backend) Preferences() (app.Preferences, error) {
+	return b.preferences(), nil
+}
+
+func (b *Backend) SavePreferences(p app.Preferences) error {
+	return b.savePreferences(p)
 }
 
 // ConfigPath resolves the config path lazily; it may be called before the

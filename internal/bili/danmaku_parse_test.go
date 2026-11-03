@@ -84,9 +84,18 @@ func TestParseInteract(t *testing.T) {
 	}
 }
 
-func TestParseInteractNonEnter(t *testing.T) {
+func TestParseInteractFollow(t *testing.T) {
 	cmd := loadCmd(t, "interact_word.json")
-	cmd["data"].(map[string]any)["msg_type"] = 2.0 // follow → ignored
+	cmd["data"].(map[string]any)["msg_type"] = 2.0 // follow
+	m := parseCommand(cmd, 0)
+	if m == nil || m.Kind != app.KindFollow || m.UID != 9988776 {
+		t.Fatalf("msg = %+v", m)
+	}
+}
+
+func TestParseInteractIgnored(t *testing.T) {
+	cmd := loadCmd(t, "interact_word.json")
+	cmd["data"].(map[string]any)["msg_type"] = 6.0 // share → ignored
 	if m := parseCommand(cmd, 0); m != nil {
 		t.Fatalf("expected nil, got %+v", m)
 	}
@@ -97,11 +106,11 @@ func TestParseSuperChat(t *testing.T) {
 	if m == nil {
 		t.Fatal("nil message")
 	}
-	if m.Kind != app.KindGift || m.Gift == nil {
-		t.Fatalf("kind/gift = %+v", m)
+	if m.Kind != app.KindSuperChat || m.SuperChat == nil {
+		t.Fatalf("kind/sc = %+v", m)
 	}
-	if m.Gift.Name != "醒目留言" || m.Gift.Price != 30000 {
-		t.Fatalf("gift = %+v", m.Gift)
+	if m.SuperChat.Price != 30 {
+		t.Fatalf("sc = %+v", m.SuperChat)
 	}
 	if m.Text != "点一首春日影" || m.Name != "星野" {
 		t.Fatalf("msg = %+v", m)
@@ -120,7 +129,7 @@ func TestParseGuardBuy(t *testing.T) {
 		},
 	}
 	m := parseCommand(cmd, 0)
-	if m == nil || m.Kind != app.KindGift || m.Guard != app.GuardJianzha {
+	if m == nil || m.Kind != app.KindGuard || m.Guard != app.GuardJianzha {
 		t.Fatalf("msg = %+v", m)
 	}
 	if m.Gift.Name != "舰长" || m.Gift.Price != 198000 {
@@ -138,5 +147,82 @@ func TestParseNotice(t *testing.T) {
 func TestParseUnknown(t *testing.T) {
 	if m := parseCommand(map[string]any{"cmd": "WIDGET_BANNER"}, 0); m != nil {
 		t.Fatalf("expected nil, got %+v", m)
+	}
+}
+
+func TestParseDanmakuSticker(t *testing.T) {
+	m := parseCommand(loadCmd(t, "danmu_sticker.json"), 0)
+	if m == nil {
+		t.Fatal("nil message")
+	}
+	if m.Face != "https://i0.hdslb.com/face.jpg" {
+		t.Fatalf("face = %q", m.Face)
+	}
+	if m.Emoticon == nil {
+		t.Fatal("expected Emoticon")
+	}
+	if m.Emoticon.Token != "official_124" || m.Emoticon.URL != "https://i0.hdslb.com/bfs/live/emo.png" {
+		t.Fatalf("emoticon = %+v", m.Emoticon)
+	}
+	if m.Emoticon.Width != 100 || m.Emoticon.Height != 100 {
+		t.Fatalf("emoticon size = %+v", m.Emoticon)
+	}
+}
+
+func TestParseDanmakuEmots(t *testing.T) {
+	m := parseCommand(loadCmd(t, "danmu_emots.json"), 0)
+	if m == nil {
+		t.Fatal("nil message")
+	}
+	if m.Emoticon != nil {
+		t.Fatalf("not a sticker: %+v", m.Emoticon)
+	}
+	if len(m.Emots) != 2 {
+		t.Fatalf("emots = %+v", m.Emots)
+	}
+	e, ok := m.Emots["[doge]"]
+	if !ok || e.URL != "https://i0.hdslb.com/e2.png" || e.Width != 20 {
+		t.Fatalf("emots[doge] = %+v", e)
+	}
+}
+
+func TestParseLikeClick(t *testing.T) {
+	m := parseCommand(loadCmd(t, "like_info_click.json"), 0)
+	if m == nil || m.Kind != app.KindLike {
+		t.Fatalf("msg = %+v", m)
+	}
+	if m.UID != 777888 || m.Name != "点赞人" || m.Text != "为主播点赞了" {
+		t.Fatalf("msg = %+v", m)
+	}
+	if m.Medal == nil || m.Medal.Name != "迷子" || m.Medal.Level != 5 {
+		t.Fatalf("medal = %+v", m.Medal)
+	}
+}
+
+func TestCounterCmd(t *testing.T) {
+	w, o, l := counterCmd(map[string]any{
+		"cmd":  "WATCHED_CHANGE",
+		"data": map[string]any{"num": 12345.0, "text_large": "1.2万"},
+	})
+	if w != 12345 || o != 0 || l != 0 {
+		t.Fatalf("watched = %d/%d/%d", w, o, l)
+	}
+	w, o, l = counterCmd(map[string]any{
+		"cmd":  "ONLINE_RANK_COUNT",
+		"data": map[string]any{"count": 678.0},
+	})
+	if w != 0 || o != 678 || l != 0 {
+		t.Fatalf("online = %d/%d/%d", w, o, l)
+	}
+	w, o, l = counterCmd(map[string]any{
+		"cmd":  "LIKE_INFO_V3_UPDATE:abc",
+		"data": map[string]any{"click_count": 999.0},
+	})
+	if w != 0 || o != 0 || l != 999 {
+		t.Fatalf("likes = %d/%d/%d", w, o, l)
+	}
+	w, o, l = counterCmd(map[string]any{"cmd": "DANMU_MSG", "info": []any{}})
+	if w != 0 || o != 0 || l != 0 {
+		t.Fatalf("danmaku = %d/%d/%d", w, o, l)
 	}
 }

@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-			"os"
+	"os"
 	"path/filepath"
-		"sync/atomic"
+	"sync/atomic"
 	"testing"
 
 	"github.com/IcyBlue17/bil-live-helper/app"
@@ -305,4 +305,3 @@ func TestNavLoggedOut(t *testing.T) {
 		t.Fatalf("st = %+v err %v", st, err)
 	}
 }
-

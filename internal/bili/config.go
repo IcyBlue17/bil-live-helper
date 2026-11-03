@@ -31,6 +31,8 @@ type configData struct {
 	LiveBuild   string `json:"liveBuild"`
 
 	Areas []app.AreaGroup `json:"areas,omitempty"`
+
+	Prefs *app.Preferences `json:"prefs,omitempty"`
 }
 
 // config is the mutex-protected store. The path is resolved lazily because
