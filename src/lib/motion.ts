@@ -1,10 +1,9 @@
 import { cubicOut } from "svelte/easing";
-import { fade, fly, type TransitionConfig } from "svelte/transition";
+import { fly, type TransitionConfig } from "svelte/transition";
 
 export const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const d = (ms: number) => (reduced() ? 0 : ms);
 
-export const fadeIn = (node: Element, ms = 200): TransitionConfig => fade(node, { duration: d(ms), easing: cubicOut });
 /** A short rise, for views, cards and popovers. */
 export const rise = (node: Element, { y = 6, ms = 240 } = {}): TransitionConfig => fly(node, { y, duration: d(ms), easing: cubicOut });
 /** Modal entrance: rise plus a hint of scale. */

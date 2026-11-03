@@ -144,6 +144,20 @@ func TestParseNotice(t *testing.T) {
 	}
 }
 
+// The site-wide gift banners (NOTICE_MSG) are about other rooms and stay out
+// of the feed.
+func TestParseNoticeMsgHidden(t *testing.T) {
+	cmd := map[string]any{
+		"cmd":         "NOTICE_MSG",
+		"msg_type":    2,
+		"real_roomid": 12345,
+		"msg_common":  "<%某用户%>投喂<%某主播%>1个王牌将士，点击前往TA的房间去围观吧！",
+	}
+	if m := parseCommand(cmd, 0); m != nil {
+		t.Fatalf("expected nil, got %+v", m)
+	}
+}
+
 func TestParseUnknown(t *testing.T) {
 	if m := parseCommand(map[string]any{"cmd": "WIDGET_BANNER"}, 0); m != nil {
 		t.Fatalf("expected nil, got %+v", m)

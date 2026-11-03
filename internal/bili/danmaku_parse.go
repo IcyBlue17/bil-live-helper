@@ -77,8 +77,11 @@ func parseCommand(cmd map[string]any, ownUID int64) *app.Message {
 		return parseLikeClick(jsMap(cmd["data"]))
 	case "SUPER_CHAT_MESSAGE":
 		return parseSuperChat(jsMap(cmd["data"]))
-	case "NOTICE_MSG", "WARNING", "CUT_OFF":
+	case "WARNING", "CUT_OFF":
 		return parseNotice(name, cmd)
+		// NOTICE_MSG is not shown: it carries the site-wide banners about other
+		// rooms ("…投喂…，前往TA的房间去围观吧"), not news of this room, whose
+		// gifts and guards arrive as SEND_GIFT / GUARD_BUY.
 	}
 	return nil
 }
@@ -356,18 +359,7 @@ func parseSuperChat(d map[string]any) *app.Message {
 }
 
 func parseNotice(name string, cmd map[string]any) *app.Message {
-	var text string
-	switch name {
-	case "NOTICE_MSG":
-		text = jsStr(cmd["msg_common"])
-		if text == "" {
-			if m := jsMap(cmd["data"]); m != nil {
-				text = jsStr(m["msg_common"])
-			}
-		}
-	case "WARNING", "CUT_OFF":
-		text = jsStr(cmd["msg"])
-	}
+	text := jsStr(cmd["msg"])
 	if text == "" {
 		return nil
 	}
