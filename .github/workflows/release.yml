@@ -35,7 +35,10 @@ jobs:
       matrix:
         include:
           - { name: macOS, os: macos-latest, platform: "darwin/arm64,darwin/amd64" }
-          - { name: Windows, os: ubuntu-latest, platform: "windows/amd64,windows/arm64" }
+          # A single portable exe, no installer. x64 only: the exe goes up as
+          # BilLiveHelper.exe, the name updates replace, and Windows on Arm
+          # runs it emulated.
+          - { name: Windows, os: ubuntu-latest, platform: "windows/amd64", flags: "-skip-installer" }
           - { name: Linux, os: ubuntu-latest, platform: "linux/amd64,linux/arm64" }
     steps:
       - uses: actions/checkout@v7
@@ -44,14 +47,17 @@ jobs:
           go-version-file: go.mod
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - name: Install NSIS, for the Windows installers
-        if: matrix.name == 'Windows'
-        run: sudo apt-get update && sudo apt-get install -y nsis
       - name: Build and upload
         env:
           GH_TOKEN: ${{ github.token }}
           MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
-        run: bun run build -- -platform "${{ matrix.platform }}" -upload
+        run: bun run build -- -platform "${{ matrix.platform }}" ${{ matrix.flags }} -upload
+      # -upload sends installers and update archives, not a bare exe.
+      - name: Upload the portable exe
+        if: matrix.name == 'Windows'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --clobber build/windows-amd64/BilLiveHelper.exe
 
   # Prereleases (v1.2.0-beta.1) stay out of the update channel.
   publish:
