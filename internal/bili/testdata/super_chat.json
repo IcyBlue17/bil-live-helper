@@ -1,0 +1,11 @@
+{
+  "cmd": "SUPER_CHAT_MESSAGE",
+  "data": {
+    "uid": 112233,
+    "message": "点一首春日影",
+    "price": 30,
+    "start_time": 1730000020,
+    "user_info": {"uname": "星野", "face": ""},
+    "id": 123
+  }
+}

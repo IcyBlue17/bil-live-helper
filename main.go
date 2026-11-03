@@ -7,6 +7,7 @@ import (
 	"github.com/egoist/mygo"
 
 	"github.com/IcyBlue17/bil-live-helper/app"
+	"github.com/IcyBlue17/bil-live-helper/internal/bili"
 	"github.com/IcyBlue17/bil-live-helper/internal/demo"
 )
 
@@ -15,7 +16,7 @@ func main() {
 	if os.Getenv("BLH_DEMO") == "1" {
 		backend = demo.New()
 	} else {
-		backend = demo.New() // TODO(backend): replace with the Bilibili backend
+		backend = bili.New()
 	}
 	app.Bind(backend)
 
