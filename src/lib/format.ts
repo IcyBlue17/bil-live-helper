@@ -1,4 +1,14 @@
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
+import duration from "dayjs/plugin/duration";
+import relativeTime from "dayjs/plugin/relativeTime";
 import { isCallError } from "mygo-runtime";
+
+dayjs.extend(duration);
+dayjs.extend(relativeTime);
+dayjs.locale("zh-cn");
+
+export { dayjs };
 
 export function errorMessage(err: unknown): string {
   if (isCallError(err)) return err.message;
@@ -7,20 +17,17 @@ export function errorMessage(err: unknown): string {
 }
 
 /** HH:MM:SS since an RFC 3339 time. */
-export function duration(since: string | null, now: number): string {
+export function elapsed(since: string | null, now: number): string {
   if (!since) return "00:00:00";
-  const t = Date.parse(since);
-  if (Number.isNaN(t)) return "00:00:00";
-  const s = Math.max(0, Math.floor((now - t) / 1000));
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  const t = dayjs(since);
+  if (!t.isValid()) return "00:00:00";
+  const d = dayjs.duration(Math.max(0, now - t.valueOf()));
+  return `${String(Math.floor(d.asHours())).padStart(2, "0")}:${d.format("mm:ss")}`;
 }
 
 export function clock(time: string): string {
-  const d = new Date(time);
-  if (Number.isNaN(d.getTime())) return "--:--";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  const t = dayjs(time);
+  return t.isValid() ? t.format("HH:mm:ss") : "--:--";
 }
 
 /** Compact Chinese number: 12873 → 1.3万. */
@@ -29,6 +36,9 @@ export function compact(n: number): string {
   if (n >= 1e4) return `${(n / 1e4).toFixed(1).replace(/\.0$/, "")}万`;
   return n.toLocaleString("zh-CN");
 }
+
+/** Intl options for NumberFlow, matching compact(). */
+export const compactFormat: Intl.NumberFormatOptions = { notation: "compact", maximumFractionDigits: 1 };
 
 /** Counts characters as Bilibili does: by code point. */
 export function charCount(s: string): number {
@@ -44,3 +54,7 @@ export function yuan(gold: number): string {
 export function maskKey(code: string): string {
   return code.replace(/(key=)([^&]+)/, (_, k: string, v: string) => k + "•".repeat(Math.min(v.length, 16)));
 }
+
+export const guardName = { 0: "", 1: "总督", 2: "提督", 3: "舰长" } as const;
+
+export const spaceURL = (uid: number) => `https://space.bilibili.com/${uid}`;

@@ -1,12 +1,14 @@
-/* The danmaku panel. Guard colours follow upstream DanmakuColors. */
-.danmaku-panel {
+/* The danmaku panel. Guard colours follow upstream DanmakuColors; they are
+   global because rank lists and the viewer card use them too. */
+:root {
   --c-fan: #ffb6c1;
   --c-jianzhang: #66ccff;
   --c-tidu: #5aa2ff; /* upstream #0066CC, lifted for contrast on dark */
   --c-zongdu: #ffd700;
   --c-admin: #3ccf6e;
   --c-self: #ff9900;
-
+}
+.danmaku-panel {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -66,11 +68,17 @@
   overscroll-behavior: contain;
 }
 .feed-list {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 8px 12px;
+  position: relative;
+  margin: 8px 8px 12px;
   user-select: text;
   -webkit-user-select: text;
+}
+.feed-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding-bottom: 1px;
 }
 .feed-empty {
   position: absolute;
@@ -120,11 +128,19 @@
   color: var(--text-2);
   font-weight: 500;
 }
-.msg-danmaku .msg-name::after {
-  content: ":";
+.colon {
   margin: 0 6px 0 1px;
   color: var(--text-3);
-  font-weight: 400;
+}
+.msg-name {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color var(--t-fast) var(--ease);
+}
+.msg-name:hover {
+  color: var(--pink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .msg-text {
   color: var(--text);
@@ -357,7 +373,18 @@
   min-width: 0;
 }
 .send-input {
+  padding-left: 38px;
   padding-right: 52px;
+}
+.send-field > .emote-btn {
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  z-index: 1;
+}
+.send-field > .emote-btn[data-state="open"] {
+  color: var(--pink);
+  background: var(--pink-soft);
 }
 .send-field .counter {
   position: absolute;
@@ -424,14 +451,16 @@
   font-weight: 400;
   margin-right: 4px;
 }
-.msg-follow .msg-body::before {
-  content: "＋";
+.kind-icon {
+  width: 12px;
+  height: 12px;
   margin-right: 4px;
+  vertical-align: -1px;
+}
+.kind-icon.follow {
   color: var(--blue);
 }
-.msg-like .msg-body::before {
-  content: "♥";
-  margin-right: 4px;
+.kind-icon.like {
   color: var(--pink);
 }
 

@@ -7,15 +7,29 @@
     "build": "mygo build",
     "generate": "mygo generate",
     "dev:web": "vite",
-    "build:web": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit"
+    "build:web": "svelte-check --fail-on-warnings && vite build",
+    "typecheck": "svelte-check"
   },
   "dependencies": {
-    "mygo-runtime": "^0.7.4"
+    "@formkit/auto-animate": "^0.10.0",
+    "@internationalized/date": "^3.12.4",
+    "@lucide/svelte": "^1.67.0",
+    "@number-flow/svelte": "^0.4.2",
+    "@tanstack/svelte-virtual": "^3.13.51",
+    "bits-ui": "^2.20.3",
+    "dayjs": "^1.11.23",
+    "fuse.js": "^7.5.0",
+    "mygo-runtime": "^0.7.4",
+    "pinyin-pro": "^3.29.5",
+    "svelte": "^5.57.3",
+    "svelte-sonner": "^1.2.3",
+    "uplot": "^1.6.32"
   },
   "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "mygo-cli": "^0.7.4",
-    "typescript": "^7",
+    "svelte-check": "^4.7.8",
+    "typescript": "^6",
     "vite": "^8"
   }
 }

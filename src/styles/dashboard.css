@@ -59,18 +59,20 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-left: -6px;
-  padding: 1px 4px 1px 6px;
+  margin: 0 -6px;
+  padding: 1px 6px;
   border-radius: 6px;
   font-size: 12px;
   color: var(--text);
   transition: background-color var(--t-fast) var(--ease);
 }
+/* The copy icon takes no room until hovered, so the separators stay even. */
 .room-id .copy-icons {
-  width: 12px;
+  width: 0;
   height: 12px;
+  margin-left: -4px;
   opacity: 0;
-  transition: opacity var(--t-fast) var(--ease);
+  transition: opacity var(--t-fast) var(--ease), width var(--t-fast) var(--ease), margin var(--t-fast) var(--ease);
 }
 .room-id .copy-icons .icon {
   width: 12px;
@@ -81,7 +83,12 @@
 }
 .room-id:hover .copy-icons,
 .room-id.copied .copy-icons {
+  width: 12px;
+  margin-left: 0;
   opacity: 1;
+}
+.area-crumb .crumb {
+  margin: 0 4px;
 }
 
 .topbar-right {
@@ -163,7 +170,7 @@
   transition: background-color var(--t-fast) var(--ease);
 }
 .user-btn:hover,
-.menu-wrap.open .user-btn {
+.user-btn[data-state="open"] {
   background: rgba(255, 255, 255, 0.06);
 }
 .user-btn .icon {
@@ -171,7 +178,7 @@
   height: 14px;
   transition: transform var(--t) var(--ease);
 }
-.menu-wrap.open .user-btn > .icon {
+.user-btn[data-state="open"] > .chev {
   transform: rotate(180deg);
 }
 .user-name {
@@ -474,27 +481,6 @@
   pointer-events: none;
 }
 
-.hero-summary {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: 16px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-.hero-summary dt {
-  font-size: 12px;
-  color: var(--text-3);
-}
-.hero-summary dd {
-  margin-top: 2px;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* ---- Stream info ---- */
 .stream-body {
   display: flex;
@@ -502,7 +488,7 @@
   gap: 14px;
   padding: 12px 20px 20px;
 }
-.field label {
+.field-label {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -510,7 +496,7 @@
   font-size: 12px;
   color: var(--text-2);
 }
-.field label .icon {
+.field-label .icon {
   width: 14px;
   height: 14px;
   color: var(--text-3);
@@ -571,7 +557,8 @@
   gap: 14px;
   padding: 12px 20px 4px;
 }
-.form-row label {
+.form-row label,
+.form-row .label {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -579,7 +566,8 @@
   font-size: 12px;
   color: var(--text-2);
 }
-.form-row label kbd {
+.form-row label kbd,
+.form-row .label kbd {
   min-width: 18px;
   height: 18px;
   font-size: 10px;
