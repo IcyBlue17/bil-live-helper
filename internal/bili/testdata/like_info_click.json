@@ -1,0 +1,14 @@
+{
+  "cmd": "LIKE_INFO_V3_CLICK",
+  "data": {
+    "show_area": 0,
+    "msg_type": 0,
+    "like_icon": "https://s1.hdslb.com/like.png",
+    "uid": 777888,
+    "like_text": "为主播点赞了",
+    "uname": "点赞人",
+    "uinfo": {"uid": 777888, "base": {"name": "点赞人"}},
+    "fans_medal": {"medal_name": "迷子", "medal_level": 5, "guard_level": 3},
+    "contribution_info": {"grade": 0}
+  }
+}
