@@ -41,6 +41,32 @@ type Backend interface {
 	// SendDanmaku posts a comment to the room.
 	SendDanmaku(ctx context.Context, text string) error
 
+	// Announcement returns the room announcement (公告).
+	Announcement(ctx context.Context) (string, error)
+	// SetAnnouncement updates the room announcement (at most 60 characters).
+	SetAnnouncement(ctx context.Context, text string) error
+	// Rank returns the 高能榜 or 大航海 list of the room, at most 50 rows.
+	Rank(ctx context.Context, kind RankKind) ([]RankUser, error)
+
+	// Emoticons returns the emoticon packages the user can send in the room.
+	Emoticons(ctx context.Context) ([]EmoticonPackage, error)
+	// SendEmoticon posts a sticker danmaku by its Token.
+	SendEmoticon(ctx context.Context, token string) error
+	// Viewer returns a viewer's card.
+	Viewer(ctx context.Context, uid int64) (ViewerCard, error)
+	// Mute mutes a viewer in the room for hours (0 = until the broadcast ends).
+	Mute(ctx context.Context, uid int64, hours int) error
+	// Unmute lifts a mute by MutedUser.ID.
+	Unmute(ctx context.Context, id int64) error
+	// Muted lists the room's muted viewers.
+	Muted(ctx context.Context) ([]MutedUser, error)
+
+	// Preferences returns the saved preferences (defaults: Notify true).
+	Preferences() (Preferences, error)
+	// SavePreferences saves and applies the preferences: Watch hides blocked
+	// danmaku and notifications follow the new thresholds.
+	SavePreferences(p Preferences) error
+
 	// ConfigPath is where the backend stores its data.
 	ConfigPath() string
 }
