@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 )
 
 // Bind registers the services the frontend calls, delegating to b.
@@ -114,7 +115,7 @@ type System struct{ b Backend }
 
 // Info describes the build.
 func (s *System) Info() AppInfo {
-	return AppInfo{Version: Version, Demo: os.Getenv("BLH_DEMO") == "1", ConfigPath: s.b.ConfigPath()}
+	return AppInfo{Version: mygo.App.Version(), CanUpdate: mygo.Updater.Enabled(), Demo: os.Getenv("BLH_DEMO") == "1", ConfigPath: s.b.ConfigPath()}
 }
 
 // Copy puts text on the clipboard.
@@ -125,6 +126,29 @@ func (s *System) Preferences() (Preferences, error) { return s.b.Preferences() }
 
 // SavePreferences saves and applies the preferences.
 func (s *System) SavePreferences(p Preferences) error { return s.b.SavePreferences(p) }
+
+// CheckForUpdates checks for a new version now, showing the update window
+// (with the result, an available update, or why this build can't update).
+func (s *System) CheckForUpdates() { updater.CheckForUpdates() }
+
+// UpdateStatus reports the updater's state, for the about panel.
+func (s *System) UpdateStatus() UpdateStatus { return CurrentUpdateStatus() }
+
+// CurrentUpdateStatus reads the updater's state.
+func CurrentUpdateStatus() UpdateStatus {
+	st := UpdateStatus{
+		CanUpdate:    mygo.Updater.Enabled(),
+		Available:    updater.AvailableVersion(),
+		AutoDownload: updater.AutomaticDownloads(),
+	}
+	if t := updater.LastCheck(); !t.IsZero() {
+		st.LastCheck = &t
+	}
+	return st
+}
+
+// SetAutoDownload turns automatic download and install of updates on or off.
+func (s *System) SetAutoDownload(on bool) { updater.SetAutomaticDownloads(on) }
 
 // OpenURL opens a URL in the default browser.
 func (s *System) OpenURL(url string) error { return mygo.Shell.OpenExternal(url) }

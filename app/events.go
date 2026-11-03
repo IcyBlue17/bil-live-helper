@@ -21,3 +21,7 @@ var Log = mygo.NewEvent[LogEntry]("log")
 func Logf(level LogLevel, msg string) {
 	_ = Log.Broadcast(LogEntry{Time: time.Now(), Level: level, Message: msg})
 }
+
+// UpdateChanged is broadcast when the updater's state changes: after a
+// check, or an answer in the update window.
+var UpdateChanged = mygo.NewEvent[UpdateStatus]("update:changed")

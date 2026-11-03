@@ -7,6 +7,11 @@ import { call, event, type Channel } from "mygo-runtime";
 /** AppInfo describes the build. */
 export interface AppInfo {
   version: string;
+  /**
+   * CanUpdate is true for release builds that update themselves; false in
+   * development and package-manager installs.
+   */
+  canUpdate: boolean;
   /** Demo is true when the app runs with fake data (BLH_DEMO=1). */
   demo: boolean;
   /** ConfigPath is where the login and settings are stored. */
@@ -278,6 +283,18 @@ export interface SuperChat {
   color: string;
 }
 
+/** UpdateStatus is what System.UpdateStatus reports. */
+export interface UpdateStatus {
+  /** CanUpdate is false when this build cannot update itself. */
+  canUpdate: boolean;
+  /** Available is a newer version found by the last check, "" for none. */
+  available: string;
+  /** LastCheck is when the app last checked, null before the first check. */
+  lastCheck: string | null;
+  /** AutoDownload installs updates without asking, at the next launch. */
+  autoDownload: boolean;
+}
+
 /** User is the logged-in Bilibili account. */
 export interface User {
   uid: number;
@@ -409,6 +426,13 @@ export const Danmaku = {
 
 /** System has app-level helpers. */
 export const System = {
+  /**
+   * CheckForUpdates checks for a new version now, showing the update window
+   * (with the result, an available update, or why this build can't update).
+   */
+  checkForUpdates(): Promise<void> {
+    return call("System.CheckForUpdates");
+  },
   /** Copy puts text on the clipboard. */
   copy(text: string): Promise<void> {
     return call("System.Copy", text);
@@ -429,6 +453,14 @@ export const System = {
   savePreferences(p: Preferences): Promise<void> {
     return call("System.SavePreferences", p);
   },
+  /** SetAutoDownload turns automatic download and install of updates on or off. */
+  setAutoDownload(on: boolean): Promise<void> {
+    return call("System.SetAutoDownload", on);
+  },
+  /** UpdateStatus reports the updater's state, for the about panel. */
+  updateStatus(): Promise<UpdateStatus> {
+    return call("System.UpdateStatus");
+  },
 } as const;
 
 // ---- Events ----
@@ -445,4 +477,9 @@ export const events = {
   authChanged: event<AuthState>("auth:changed"),
   /** Log is broadcast for each line of the activity log. */
   log: event<LogEntry>("log"),
+  /**
+   * UpdateChanged is broadcast when the updater's state changes: after a
+   * check, or an answer in the update window.
+   */
+  updateChanged: event<UpdateStatus>("update:changed"),
 } as const;
