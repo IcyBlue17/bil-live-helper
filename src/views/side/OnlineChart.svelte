@@ -1,9 +1,12 @@
 <script lang="ts">
-  // Online count over time: one pink 2px line, recessive grid, crosshair + tooltip.
+  // Online count over time, in the Vercel Analytics style: one blue 2px line
+  // over a faint fill, dashed horizontal grid, mono axis labels, a crosshair
+  // and a tooltip. Colours come from the theme's CSS variables.
   import uPlot from "uplot";
   import "uplot/dist/uPlot.min.css";
   import type { OnlineSample } from "../../mygo";
   import { dayjs } from "../../lib/format";
+  import { theme } from "../../lib/theme.svelte";
 
   let { samples }: { samples: OnlineSample[] } = $props();
 
@@ -16,52 +19,59 @@
     samples.map((p) => p.online),
   ]);
 
-  const axisFont = "11px system-ui, sans-serif";
   const fmt = new Intl.NumberFormat("zh-CN", { notation: "compact", maximumFractionDigits: 1 });
 
   $effect(() => {
     const el = box;
+    void theme.resolved;
     if (!el) return;
+    const css = getComputedStyle(el);
+    const v = (name: string) => css.getPropertyValue(name).trim();
+    const line = v("--blue");
+    const axis = v("--text-3");
+    const grid = v("--line-2");
+    const surface = v("--surface");
+    const font = `11px ${v("--mono")}`;
     const opts: uPlot.Options = {
       width: el.clientWidth,
       height: el.clientHeight,
-      padding: [8, 4, 0, 0],
+      padding: [12, 8, 0, 0],
       legend: { show: false },
       cursor: {
         y: false,
-        points: { size: 8, width: 2, stroke: "#fb7299", fill: "#15171c" },
+        points: { size: 9, width: 2, stroke: line, fill: surface },
         drag: { x: false, y: false },
       },
       scales: { x: { time: true }, y: { range: (_u, _min, max) => [0, Math.max(10, max * 1.15)] } },
       axes: [
         {
-          stroke: "#6b7280",
-          font: axisFont,
-          size: 24,
-          gap: 4,
+          stroke: axis,
+          font,
+          size: 28,
+          gap: 8,
           grid: { show: false },
           ticks: { show: false },
           values: (_u, ts) => ts.map((t) => dayjs.unix(t).format("HH:mm")),
         },
         {
-          stroke: "#6b7280",
-          font: axisFont,
-          size: 40,
-          gap: 6,
-          grid: { stroke: "rgba(255,255,255,0.06)", width: 1 },
+          stroke: axis,
+          font,
+          size: 44,
+          gap: 8,
+          grid: { stroke: grid, width: 1, dash: [3, 3] },
           ticks: { show: false },
-          values: (_u, vs) => vs.map((v) => fmt.format(v)),
+          values: (_u, vs) => vs.map((x) => fmt.format(x)),
         },
       ],
       series: [
         {},
         {
-          stroke: "#fb7299",
+          stroke: line,
           width: 2,
           fill: (u) => {
             const g = u.ctx.createLinearGradient(0, u.bbox.top, 0, u.bbox.top + u.bbox.height);
-            g.addColorStop(0, "rgba(251,114,153,0.22)");
-            g.addColorStop(1, "rgba(251,114,153,0)");
+            g.addColorStop(0, "rgba(0,112,243,0.18)");
+            g.addColorStop(1, "rgba(0,112,243,0)");
             return g;
           },
           points: { show: false },
@@ -75,10 +85,10 @@
             const xs = u.data[0];
             const ys = u.data[1];
             if (i == null || u.cursor.left == null || u.cursor.left < 0 || !ys) return void (tip = null);
-            const v = ys[i];
+            const y = ys[i];
             const t = xs[i];
-            if (v == null || t == null) return void (tip = null);
-            tip = { x: u.valToPos(t, "x"), y: u.valToPos(v, "y"), time: dayjs.unix(t).format("HH:mm"), online: v };
+            if (y == null || t == null) return void (tip = null);
+            tip = { x: u.valToPos(t, "x"), y: u.valToPos(y, "y"), time: dayjs.unix(t).format("HH:mm"), online: y };
           },
         ],
       },
@@ -102,11 +112,12 @@
 <div class="chart" role="img" aria-label="在线人数折线图，共 {samples.length} 个采样点">
   <div class="chart-plot" bind:this={box}></div>
   {#if samples.length < 2}
-    <div class="chart-empty muted">数据不足，每分钟采样一次</div>
+    <div class="chart-empty">数据不足，每分钟采样一次</div>
   {/if}
   {#if tip}
-    <div class="chart-tip" style="left:{tip.x + 40}px;top:{tip.y + 8}px">
-      <span class="muted num">{tip.time}</span><b class="num">{tip.online.toLocaleString("zh-CN")}</b>
+    <div class="chart-tip" style="left:{tip.x + 44}px;top:{tip.y + 12}px">
+      <span class="chart-tip-time mono">{tip.time}</span>
+      <span class="chart-tip-row"><span class="chart-tip-swatch"></span>在线<b class="num">{tip.online.toLocaleString("zh-CN")}</b></span>
     </div>
   {/if}
 </div>

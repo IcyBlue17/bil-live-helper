@@ -1,42 +1,129 @@
-/* Tokens, reset, typography and motion primitives. */
-:root {
+/* Tokens, fonts, reset, typography and motion primitives.
+   Colours follow Vercel's Geist: near-black canvas, 1px hairlines, a grey
+   text scale, and accents only where they carry meaning. */
+@font-face {
+  font-family: "Geist";
+  src: url("../../node_modules/geist/dist/fonts/geist-sans/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../../node_modules/geist/dist/fonts/geist-mono/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root,
+:root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0e0f13;
-  --bg-sunken: #0a0b0e;
-  --surface: #15171c;
-  --surface-2: #1b1e24;
-  --surface-3: #22262d;
-  --line: rgba(255, 255, 255, 0.06);
-  --line-2: rgba(255, 255, 255, 0.1);
-  --line-3: rgba(255, 255, 255, 0.16);
-  --text: #e8e9ed;
-  --text-2: #a3a7b1;
-  --text-3: #6c717c;
-  --pink: #fb7299;
-  --pink-hover: #ff86a8;
-  --pink-press: #e8638a;
-  --pink-soft: rgba(251, 114, 153, 0.12);
-  --pink-line: rgba(251, 114, 153, 0.32);
-  --blue: #00aeec;
-  --blue-soft: rgba(0, 174, 236, 0.12);
-  --green: #3ccf8e;
-  --green-soft: rgba(60, 207, 142, 0.12);
-  --amber: #f5b14c;
-  --amber-soft: rgba(245, 177, 76, 0.12);
-  --red: #f0566b;
-  --red-soft: rgba(240, 86, 107, 0.12);
+  --bg: #000;
+  --surface: #0a0a0a;
+  --surface-2: #111;
+  --surface-3: #1a1a1a;
+  --hover: rgba(255, 255, 255, 0.06);
+  --press: rgba(255, 255, 255, 0.1);
+  --line: #1f1f1f;
+  --line-2: #2e2e2e;
+  --line-3: #454545;
+  --text: #ededed;
+  --text-2: #a1a1a1;
+  --text-3: #737373;
 
-  --r-card: 14px;
-  --r-ctl: 9px;
+  /* Primary buttons invert the canvas. */
+  --inverse: #ededed;
+  --inverse-hover: #fff;
+  --on-inverse: #0a0a0a;
+
+  --blue: #0070f3;
+  --blue-text: #52a8ff;
+  --blue-soft: rgba(0, 112, 243, 0.14);
+  --blue-line: rgba(82, 168, 255, 0.36);
+  --live: #ff0080;
+  --live-text: #ff4fa3;
+  --live-soft: rgba(255, 0, 128, 0.12);
+  --live-line: rgba(255, 0, 128, 0.4);
+  --green: #50e3c2;
+  --green-text: #50e3c2;
+  --green-soft: rgba(80, 227, 194, 0.12);
+  --amber: #f5a623;
+  --amber-text: #ffb224;
+  --amber-soft: rgba(245, 166, 35, 0.12);
+  --amber-line: rgba(245, 166, 35, 0.36);
+  --red: #ee0000;
+  --red-text: #ff6166;
+  --red-soft: rgba(238, 0, 0, 0.14);
+  --red-line: rgba(255, 97, 102, 0.4);
+
+  --focus: rgba(82, 168, 255, 0.6);
+  --shadow-pop: 0 0 0 1px var(--line-2), 0 8px 30px rgba(0, 0, 0, 0.5);
+  --backdrop: rgba(0, 0, 0, 0.72);
+  --skel-hi: #1a1a1a;
+  --scroll: rgba(255, 255, 255, 0.1);
+  --scroll-hover: rgba(255, 255, 255, 0.2);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #fafafa;
+  --surface: #fff;
+  --surface-2: #fafafa;
+  --surface-3: #f2f2f2;
+  --hover: rgba(0, 0, 0, 0.05);
+  --press: rgba(0, 0, 0, 0.08);
+  --line: #ebebeb;
+  --line-2: #e0e0e0;
+  --line-3: #c9c9c9;
+  --text: #171717;
+  --text-2: #666;
+  --text-3: #737373;
+
+  --inverse: #171717;
+  --inverse-hover: #383838;
+  --on-inverse: #fff;
+
+  --blue: #0070f3;
+  --blue-text: #0068d6;
+  --blue-soft: rgba(0, 112, 243, 0.08);
+  --blue-line: rgba(0, 112, 243, 0.3);
+  --live: #ff0080;
+  --live-text: #d6006b;
+  --live-soft: rgba(255, 0, 128, 0.07);
+  --live-line: rgba(255, 0, 128, 0.32);
+  --green: #29bc9b;
+  --green-text: #0f7d65;
+  --green-soft: rgba(41, 188, 155, 0.1);
+  --amber: #f5a623;
+  --amber-text: #a35200;
+  --amber-soft: rgba(245, 166, 35, 0.12);
+  --amber-line: rgba(245, 166, 35, 0.45);
+  --red: #ee0000;
+  --red-text: #d80000;
+  --red-soft: rgba(238, 0, 0, 0.07);
+  --red-line: rgba(238, 0, 0, 0.3);
+
+  --focus: rgba(0, 112, 243, 0.5);
+  --shadow-pop: 0 0 0 1px var(--line-2), 0 4px 8px -4px rgba(0, 0, 0, 0.04), 0 16px 24px -8px rgba(0, 0, 0, 0.06);
+  --backdrop: rgba(0, 0, 0, 0.3);
+  --skel-hi: #f2f2f2;
+  --scroll: rgba(0, 0, 0, 0.12);
+  --scroll-hover: rgba(0, 0, 0, 0.24);
+}
+
+:root {
+  --r-card: 8px;
+  --r-ctl: 6px;
   --r-pill: 999px;
-  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --t-fast: 150ms;
-  --t: 200ms;
-  --t-slow: 260ms;
-  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --t: 180ms;
+  --t-slow: 200ms;
 
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", system-ui, sans-serif;
-  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", monospace;
+  --cjk: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC";
+  --font: "Geist", var(--cjk), -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, "Noto Sans Mono CJK SC", var(--cjk), monospace;
 
   font-family: var(--font);
   font-size: 14px;
@@ -58,6 +145,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  background: var(--bg);
 }
 
 body {
@@ -87,13 +175,14 @@ button:disabled {
   cursor: default;
 }
 
-input {
+input,
+textarea {
   font: inherit;
   color: inherit;
 }
 
 a {
-  color: var(--blue);
+  color: var(--blue-text);
   text-decoration: none;
 }
 a:hover {
@@ -104,12 +193,13 @@ a:hover {
   outline: none;
 }
 :focus-visible {
-  outline: 2px solid rgba(0, 174, 236, 0.7);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(251, 114, 153, 0.35);
+  background: var(--inverse);
+  color: var(--on-inverse);
 }
 
 .num {
@@ -135,12 +225,55 @@ a:hover {
   flex: none;
 }
 
+/* The app mark inverts with the theme. */
 .mark {
-  width: 32px;
-  height: 32px;
   flex: none;
-  border-radius: 9px;
-  box-shadow: 0 4px 14px rgba(251, 114, 153, 0.25);
+  display: block;
+}
+.mark-bg {
+  fill: var(--inverse);
+}
+.mark-fg {
+  stroke: var(--on-inverse);
+  fill: var(--on-inverse);
+}
+
+/* Status dots: the Vercel "Ready / Building" pattern. */
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.dot-live {
+  position: relative;
+  background: var(--live);
+}
+.dot-live::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--live);
+  animation: ping 1.6s var(--ease) infinite;
+}
+.dot-ok {
+  background: var(--green);
+}
+.dot-info {
+  background: var(--blue);
+}
+.dot-warn {
+  background: var(--amber);
+}
+.dot-error {
+  background: var(--red);
+}
+.dot-busy {
+  background: var(--amber);
+  animation: blink 1s ease-in-out infinite;
 }
 
 /* Scrollbars (WebKit) */
@@ -149,32 +282,21 @@ a:hover {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--scroll);
   border: 3px solid transparent;
   background-clip: padding-box;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.16);
+  background-color: var(--scroll-hover);
 }
-::-webkit-scrollbar-track {
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* View transitions */
-.view-enter {
-  animation: view-in var(--t-slow) var(--ease) both;
-}
-.view-leave {
-  position: absolute !important;
-  inset: 0;
-  animation: view-out var(--t) var(--ease) both;
-}
 @keyframes view-in {
-  from { opacity: 0; transform: translateY(6px); }
-}
-@keyframes view-out {
-  to { opacity: 0; transform: translateY(-4px); }
+  from { opacity: 0; transform: translateY(4px); }
 }
 @keyframes fade-in {
   from { opacity: 0; }
@@ -182,10 +304,12 @@ a:hover {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(251, 114, 153, 0.55); }
-  70% { box-shadow: 0 0 0 7px rgba(251, 114, 153, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(251, 114, 153, 0); }
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes blink {
+  50% { opacity: 0.35; }
 }
 @keyframes shimmer {
   from { background-position: -400px 0; }

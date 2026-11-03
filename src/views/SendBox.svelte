@@ -74,17 +74,17 @@
       <Popover.Root bind:open={pickerOpen}>
         <Popover.Trigger class="icon-btn emote-btn" aria-label="表情" title="表情"><Smile class="icon" /></Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content class="popover emote-picker" side="top" align="start" sideOffset={10} onOpenAutoFocus={(e) => e.preventDefault()}>
+          <Popover.Content class="popover emote-picker" side="top" align="start" sideOffset={8} onOpenAutoFocus={(e) => e.preventDefault()}>
             {#if loadError}
-              <div class="empty empty-sm"><p>表情加载失败</p><p class="muted">{loadError}</p></div>
+              <div class="empty empty-sm"><p>表情加载失败</p><p>{loadError}</p></div>
             {:else if !packages}
               <div class="empty empty-sm"><span class="spinner"></span></div>
             {:else if packages.length === 0}
               <div class="empty empty-sm"><p>没有可用的表情</p></div>
             {:else}
               <Tabs.Root bind:value={tab}>
-                <Tabs.List class="seg">
-                  {#each packages as p (p.id)}<Tabs.Trigger value={String(p.id)} class="seg-item">{p.name}</Tabs.Trigger>{/each}
+                <Tabs.List class="emote-tabs">
+                  {#each packages as p (p.id)}<Tabs.Trigger value={String(p.id)} class="emote-tab">{p.name}</Tabs.Trigger>{/each}
                 </Tabs.List>
                 {#each packages as p (p.id)}
                   <Tabs.Content value={String(p.id)}>
@@ -99,7 +99,7 @@
                   </Tabs.Content>
                 {/each}
               </Tabs.Root>
-              <p class="hint muted picker-hint">小表情插入到输入框，大表情点击即发送</p>
+              <p class="picker-hint">小表情插入到输入框，大表情点击即发送</p>
             {/if}
           </Popover.Content>
         </Popover.Portal>

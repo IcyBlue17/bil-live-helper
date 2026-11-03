@@ -1,12 +1,22 @@
-/* The danmaku panel. Guard colours follow upstream DanmakuColors; they are
-   global because rank lists and the viewer card use them too. */
-:root {
-  --c-fan: #ffb6c1;
-  --c-jianzhang: #66ccff;
-  --c-tidu: #5aa2ff; /* upstream #0066CC, lifted for contrast on dark */
-  --c-zongdu: #ffd700;
-  --c-admin: #3ccf6e;
-  --c-self: #ff9900;
+/* The danmaku panel. Guard colours follow upstream DanmakuColors (tuned per
+   theme for contrast); they are global because the rank list and the viewer
+   card use them too. */
+:root,
+:root[data-theme="dark"] {
+  --c-fan: #ff99c8;
+  --c-jianzhang: #52a8ff;
+  --c-tidu: #a78bfa;
+  --c-zongdu: #ffb224;
+  --c-admin: #50e3c2;
+  --c-self: #ededed;
+}
+:root[data-theme="light"] {
+  --c-fan: #c41562;
+  --c-jianzhang: #0068d6;
+  --c-tidu: #7928ca;
+  --c-zongdu: #a35200;
+  --c-admin: #0f7d65;
+  --c-self: #171717;
 }
 .danmaku-panel {
   display: flex;
@@ -15,51 +25,41 @@
   min-height: 0;
 }
 
-.conn-pill {
+.stat-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 12px var(--mono);
+  color: var(--text-2);
+}
+.stat-sm .icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-3);
+}
+.conn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 24px;
-  padding: 0 10px;
+  padding: 0 8px;
   border-radius: var(--r-pill);
+  border: 1px solid var(--line-2);
   font-size: 12px;
   color: var(--text-2);
-  background: rgba(255, 255, 255, 0.05);
-  transition: color var(--t) var(--ease), background-color var(--t) var(--ease);
 }
-.conn-dot {
+.conn .dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background: var(--text-3);
 }
 .conn-connected {
-  color: var(--green);
-  background: var(--green-soft);
-}
-.conn-connected .conn-dot {
-  background: var(--green);
-}
-.conn-connecting,
-.conn-reconnecting {
-  color: var(--amber);
-  background: var(--amber-soft);
-}
-.conn-connecting .conn-dot,
-.conn-reconnecting .conn-dot {
-  background: var(--amber);
-  animation: blink 1s ease-in-out infinite;
-}
-@keyframes blink {
-  50% { opacity: 0.3; }
+  color: var(--text);
 }
 
 .feed {
   position: relative;
   flex: 1;
   min-height: 0;
-  margin-top: 12px;
-  border-top: 1px solid var(--line);
 }
 .feed-scroll {
   position: absolute;
@@ -69,7 +69,7 @@
 }
 .feed-list {
   position: relative;
-  margin: 8px 8px 12px;
+  margin: 6px 6px 10px;
   user-select: text;
   -webkit-user-select: text;
 }
@@ -87,31 +87,29 @@
 
 .msg {
   display: flex;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 8px;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: var(--r-ctl);
   font-size: 13.5px;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 .msg:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--hover);
 }
 .msg.fresh {
   animation: msg-in var(--t-slow) var(--ease) both;
 }
 @keyframes msg-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
 }
 .msg.historical {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 .msg-time {
   flex: none;
-  padding-top: 2px;
-  font-size: 11px;
-  line-height: 1.6;
+  padding-top: 1px;
+  font: 11px/21px var(--mono);
   color: var(--text-3);
-  opacity: 0.8;
 }
 .msg-body {
   min-width: 0;
@@ -127,76 +125,75 @@
 .msg-name {
   color: var(--text-2);
   font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color var(--t-fast) var(--ease);
+}
+.msg-name:hover:not(:disabled) {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .colon {
   margin: 0 6px 0 1px;
   color: var(--text-3);
 }
-.msg-name {
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color var(--t-fast) var(--ease);
-}
-.msg-name:hover {
-  color: var(--pink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .msg-text {
   color: var(--text);
 }
 
+/* Tags: the Geist badge, small. */
 .tag,
 .medal,
 .ul {
   display: inline-flex;
   align-items: center;
-  height: 17px;
-  margin-right: 5px;
+  height: 18px;
+  margin-right: 6px;
   border-radius: 4px;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1;
   font-weight: 500;
+  white-space: nowrap;
 }
 .tag {
-  padding: 0 4px;
+  padding: 0 5px;
+  border: 1px solid currentColor;
 }
 .tag-admin {
   color: var(--c-admin);
-  background: rgba(60, 207, 110, 0.14);
 }
 .tag-guard-3 {
   color: var(--c-jianzhang);
-  background: rgba(102, 204, 255, 0.14);
 }
 .tag-guard-2 {
   color: var(--c-tidu);
-  background: rgba(90, 162, 255, 0.16);
 }
 .tag-guard-1 {
   color: var(--c-zongdu);
-  background: rgba(255, 215, 0, 0.14);
 }
 .medal {
   overflow: hidden;
-  border: 1px solid rgba(255, 182, 193, 0.45);
-  color: var(--c-fan);
+  border: 1px solid var(--line-3);
+  color: var(--text-2);
 }
 .medal span {
-  padding: 0 4px;
+  padding: 0 5px;
 }
 .medal b {
   display: grid;
   place-items: center;
   height: 100%;
-  min-width: 17px;
-  padding: 0 3px;
-  font-weight: 600;
-  color: #2a1a20;
-  background: var(--c-fan);
+  min-width: 18px;
+  padding: 0 4px;
+  font: 600 10.5px var(--mono);
+  color: var(--on-inverse);
+  background: var(--text-2);
 }
 .ul {
   padding: 0 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
   color: var(--text-3);
   border: 1px solid var(--line-2);
 }
@@ -217,18 +214,19 @@
   color: var(--c-admin);
 }
 .msg-self {
-  background: rgba(255, 153, 0, 0.07);
-  box-shadow: inset 2px 0 0 var(--c-self);
+  background: var(--surface-2);
+  box-shadow: inset 2px 0 0 var(--text);
 }
 .msg-self .msg-name {
   color: var(--c-self);
 }
 
-/* Gifts: compact accent rows. */
+/* Gifts: compact rows with the value right-aligned. */
 .msg-gift,
 .msg-guard {
   margin: 2px 0;
-  background: rgba(251, 114, 153, 0.06);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
 }
 .msg-gift .msg-body,
 .msg-guard .msg-body {
@@ -242,37 +240,36 @@
 .msg-guard .icon {
   width: 14px;
   height: 14px;
-  color: var(--pink);
+  color: var(--text-2);
 }
 .msg-gift .msg-name,
 .msg-guard .msg-name {
   color: var(--text);
 }
 .gift-name {
-  color: var(--pink);
+  color: var(--text);
   font-weight: 500;
 }
 .gift-price {
   margin-left: auto;
-  padding: 0 6px;
-  border-radius: 4px;
-  font-size: 11.5px;
-  color: var(--pink);
-  background: var(--pink-soft);
+  font: 500 12px var(--mono);
+  color: var(--text-2);
 }
 .msg-gift.gift-big {
-  background: rgba(240, 86, 107, 0.1);
+  border-color: var(--amber-line);
+}
+.msg-gift.gift-big .gift-price,
+.msg-gift.gift-big .icon {
+  color: var(--amber-text);
 }
 .guard-3:is(.msg-gift, .msg-guard) {
-  background: rgba(102, 204, 255, 0.08);
+  border-color: var(--blue-line);
+  background: var(--blue-soft);
 }
 .guard-3:is(.msg-gift, .msg-guard) .icon,
 .guard-3:is(.msg-gift, .msg-guard) .gift-name,
 .guard-3:is(.msg-gift, .msg-guard) .gift-price {
   color: var(--c-jianzhang);
-}
-.guard-3:is(.msg-gift, .msg-guard) .gift-price {
-  background: rgba(102, 204, 255, 0.12);
 }
 .guard-2:is(.msg-gift, .msg-guard) .gift-name,
 .guard-2:is(.msg-gift, .msg-guard) .icon {
@@ -283,16 +280,32 @@
   color: var(--c-zongdu);
 }
 
-.msg-enter {
-  padding-top: 2px;
-  padding-bottom: 2px;
+.msg-enter,
+.msg-follow,
+.msg-like {
+  padding-top: 1px;
+  padding-bottom: 1px;
   font-size: 12px;
   color: var(--text-3);
 }
-.msg-enter .msg-name {
+.msg-enter .msg-name,
+.msg-follow .msg-name,
+.msg-like .msg-name {
   color: var(--text-2);
   font-weight: 400;
   margin-right: 4px;
+}
+.kind-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  vertical-align: -1px;
+}
+.kind-icon.follow {
+  color: var(--blue-text);
+}
+.kind-icon.like {
+  color: var(--live-text);
 }
 
 .msg-notice,
@@ -300,17 +313,21 @@
   justify-content: center;
   text-align: center;
   font-size: 12px;
-  color: var(--text-3);
+  color: var(--text-2);
 }
-.msg-notice .msg-body {
+.msg-notice .msg-body,
+.msg-system .msg-body {
   flex: none;
   max-width: 90%;
-  padding: 2px 10px;
+  padding: 0 10px;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-2);
 }
 .msg-system {
-  color: #ff8a8a;
+  color: var(--red-text);
+}
+.msg-system .msg-body {
+  border-color: var(--red-line);
 }
 
 .feed-divider {
@@ -318,7 +335,7 @@
   align-items: center;
   gap: 12px;
   margin: 8px 10px;
-  font-size: 11.5px;
+  font: 11px var(--mono);
   color: var(--text-3);
 }
 .feed-divider::before,
@@ -336,16 +353,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 30px;
-  padding: 0 12px 0 14px;
+  height: 28px;
+  padding: 0 10px 0 12px;
   border-radius: var(--r-pill);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
-  color: #fff;
-  background: var(--pink);
-  box-shadow: 0 6px 18px rgba(251, 114, 153, 0.35);
+  color: var(--on-inverse);
+  background: var(--inverse);
   opacity: 0;
-  transform: translate(-50%, 8px);
+  transform: translate(-50%, 6px);
   pointer-events: none;
   transition: opacity var(--t) var(--ease), transform var(--t) var(--ease);
 }
@@ -360,8 +376,10 @@
 }
 
 .send-box {
-  padding: 12px 16px 14px;
+  padding: 12px;
   border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 0 0 var(--r-card) var(--r-card);
 }
 .send-row {
   display: flex;
@@ -378,13 +396,13 @@
 }
 .send-field > .emote-btn {
   position: absolute;
-  left: 3px;
-  top: 3px;
+  left: 2px;
+  top: 2px;
   z-index: 1;
 }
 .send-field > .emote-btn[data-state="open"] {
-  color: var(--pink);
-  background: var(--pink-soft);
+  color: var(--text);
+  background: var(--press);
 }
 .send-field .counter {
   position: absolute;
@@ -394,8 +412,8 @@
   pointer-events: none;
 }
 .send-btn {
-  width: 42px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   flex: none;
 }
@@ -406,7 +424,7 @@
   height: 0;
   overflow: hidden;
   font-size: 12px;
-  color: var(--red);
+  color: var(--red-text);
   opacity: 0;
   transition: height var(--t) var(--ease), opacity var(--t) var(--ease), margin var(--t) var(--ease);
 }
@@ -433,47 +451,24 @@
   width: 64px;
   height: 64px;
   margin-top: 4px;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
   object-fit: contain;
 }
 
-/* Follows and likes: like enters, with a hint of colour. */
-.msg-follow,
-.msg-like {
-  padding-top: 2px;
-  padding-bottom: 2px;
-  font-size: 12px;
-  color: var(--text-3);
-}
-.msg-follow .msg-name,
-.msg-like .msg-name {
-  color: var(--text-2);
-  font-weight: 400;
-  margin-right: 4px;
-}
-.kind-icon {
-  width: 12px;
-  height: 12px;
-  margin-right: 4px;
-  vertical-align: -1px;
-}
-.kind-icon.follow {
-  color: var(--blue);
-}
-.kind-icon.like {
-  color: var(--pink);
-}
-
-/* Super Chats (醒目留言) */
+/* Super Chats (醒目留言): a bordered card, amber for money. */
 .msg-superchat {
-  padding: 4px 6px;
+  padding: 4px 4px;
+}
+.msg-superchat:hover {
+  background: transparent;
 }
 .sc-card {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  border-radius: 10px;
-  border: 1px solid rgba(245, 177, 76, 0.35);
+  border-radius: var(--r-card);
+  border: 1px solid var(--amber-line);
+  background: var(--surface);
 }
 .sc-head {
   display: flex;
@@ -481,22 +476,19 @@
   gap: 6px;
   padding: 6px 10px;
   font-size: 12.5px;
-  background: rgba(245, 177, 76, 0.14);
+  border-bottom: 1px solid var(--amber-line);
+  background: var(--amber-soft);
 }
 .sc-head .msg-name {
   color: var(--text);
 }
 .sc-price {
   margin-left: auto;
-  font-weight: 600;
-  color: var(--amber);
+  font: 600 13px var(--mono);
+  color: var(--amber-text);
 }
 .sc-text {
   padding: 8px 10px;
   font-size: 13.5px;
   color: var(--text);
-  background: rgba(245, 177, 76, 0.05);
-}
-.msg-guard {
-  margin: 2px 0;
 }

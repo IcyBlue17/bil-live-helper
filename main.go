@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/egoist/mygo"
+	"github.com/egoist/mygo/plugins/updater"
 
 	"github.com/IcyBlue17/bil-live-helper/app"
 	"github.com/IcyBlue17/bil-live-helper/internal/bili"
@@ -19,8 +20,12 @@ func main() {
 		backend = bili.New()
 	}
 	app.Bind(backend)
+	// Checks GitHub releases 10s after launch and then daily; the window is
+	// in Chinese like the rest of the app.
+	mygo.Use(updater.New(updater.Options{Language: "zh-Hans"}))
 
 	mygo.App.WhenReady(func() {
+		updater.OnChange(func() { _ = app.UpdateChanged.Broadcast(app.CurrentUpdateStatus()) })
 		mygo.NewWindow(mygo.WindowOptions{
 			Title:           "Bil Live Helper",
 			Width:           1180,

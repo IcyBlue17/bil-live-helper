@@ -52,8 +52,8 @@
             <div {...props} class="modal {cls}" style="width:min({width}px, calc(100vw - 48px))" transition:pop>
               <header class="modal-head">
                 <div>
-                  <Dialog.Title level={2}>{title}</Dialog.Title>
-                  {#if subtitle}<Dialog.Description class="muted">{subtitle}</Dialog.Description>{/if}
+                  <Dialog.Title level={2} class="modal-title">{title}</Dialog.Title>
+                  {#if subtitle}<Dialog.Description class="modal-desc">{subtitle}</Dialog.Description>{/if}
                 </div>
                 <Dialog.Close class="icon-btn" aria-label="关闭" title="关闭 (Esc)"><X class="icon" /></Dialog.Close>
               </header>

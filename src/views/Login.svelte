@@ -34,30 +34,31 @@
 <svelte:window {onkeydown} />
 
 <div class="login-screen">
-  <section class="login-card">
-    <div class="login-brand">
-      <Mark size={40} />
-      <div>
-        <h1>Bil Live Helper</h1>
-        <p class="muted">B 站直播推流助手</p>
-      </div>
-    </div>
-    <p class="login-intro">扫码登录后，即可一键开播、获取 RTMP 推流地址与推流码，修改标题与分区，并实时查看弹幕。</p>
-    <QrTile svg={login.svg} {stage} scannedText="请在手机上确认">
-      {#snippet expired()}
-        <p>{stage === "error" ? "获取失败" : "二维码已过期"}</p>
-        <button class="btn btn-primary btn-sm" onclick={retry}><RefreshCw class="icon" />刷新二维码</button>
-      {/snippet}
-    </QrTile>
-    <div class="login-stage stage-{stage}" aria-live="polite"><span class="stage-dot"></span><span>{text}</span></div>
-    <ol class="login-steps">
-      <li class={step(1)}><b>1</b>打开哔哩哔哩 App</li>
-      <li class={step(2)}><b>2</b>扫描二维码</li>
-      <li class={step(3)}><b>3</b>在手机上确认登录</li>
-    </ol>
-  </section>
-  <footer class="login-foot muted">
-    v{app.info?.version ?? ""}
+  <header class="login-top">
+    <Mark size={24} />
+    <span>Bil Live Helper</span>
+  </header>
+  <div class="login-glow" aria-hidden="true"></div>
+  <main class="login-main">
+    <h1>登录到 Bil Live Helper</h1>
+    <p class="login-intro">扫码登录后，即可一键开播、获取推流地址与推流码、修改标题与分区，并实时查看弹幕。</p>
+    <section class="login-card">
+      <QrTile svg={login.svg} {stage} scannedText="请在手机上确认">
+        {#snippet expired()}
+          <p>{stage === "error" ? "获取失败" : "二维码已过期"}</p>
+          <button class="btn btn-primary btn-sm" onclick={retry}><RefreshCw class="icon" />刷新二维码</button>
+        {/snippet}
+      </QrTile>
+      <div class="login-stage stage-{stage}" aria-live="polite"><span class="dot"></span><span>{text}</span></div>
+      <ol class="login-steps">
+        <li class={step(1)}><b>1</b>打开哔哩哔哩 App</li>
+        <li class={step(2)}><b>2</b>扫描二维码</li>
+        <li class={step(3)}><b>3</b>在手机上确认</li>
+      </ol>
+    </section>
+  </main>
+  <footer class="login-foot">
+    <span class="mono">v{app.info?.version ?? ""}</span>
     {#if app.info?.demo}<span class="badge badge-blue">演示模式</span>{/if}
   </footer>
 </div>

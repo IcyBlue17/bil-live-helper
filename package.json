@@ -1,5 +1,6 @@
 {
   "name": "bil-live-helper",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -19,6 +20,7 @@
     "bits-ui": "^2.20.3",
     "dayjs": "^1.11.23",
     "fuse.js": "^7.5.0",
+    "geist": "^1.9.0",
     "mygo-runtime": "^0.7.4",
     "pinyin-pro": "^3.29.5",
     "svelte": "^5.57.3",

@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { elapsed } from "../lib/format";
+  // The room's broadcast state as a dot and a label, like a deployment status.
   import { app } from "../lib/state.svelte";
   const status = $derived(app.room?.status ?? "offline");
 </script>
 
 <span class="status-pill status-{status}">
-  <span class="status-dot"></span>
+  <span class="dot" class:dot-live={status === "live"} class:dot-info={status === "round"}></span>
   <span>{status === "live" ? "直播中" : status === "round" ? "轮播中" : "未开播"}</span>
-  {#if status === "live"}<span class="status-time num">{elapsed(app.room?.liveSince ?? null, app.now)}</span>{/if}
 </span>

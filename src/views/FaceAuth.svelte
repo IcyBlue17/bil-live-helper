@@ -24,7 +24,7 @@
       <li>按提示完成人脸识别</li>
       <li>认证通过后将自动开播，无需其他操作</li>
     </ol>
-    <div class="login-stage stage-{last.stage}"><span class="stage-dot"></span><span>{last.message || "等待扫码…"}</span></div>
-    <div class="modal-actions"><button class="btn btn-ghost" onclick={cancelStart}>取消开播</button></div>
+    <div class="login-stage stage-{last.stage}"><span class="dot"></span><span>{last.message || "等待扫码…"}</span></div>
   </div>
+  <footer class="modal-actions"><button class="btn btn-secondary" onclick={cancelStart}>取消开播</button></footer>
 </Modal>

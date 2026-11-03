@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronRight, PencilLine } from "@lucide/svelte";
+  import { ChevronsUpDown } from "@lucide/svelte";
   import { tick } from "svelte";
   import { findArea } from "../lib/areaSearch";
   import { charCount } from "../lib/format";
@@ -52,49 +52,57 @@
 </script>
 
 <section class="card settings-card">
-  <header class="card-head">
-    <h3><PencilLine class="icon" />直播间设置</h3>
-    <span class="dirty-badge" class:show={dirty}><span class="dirty-dot"></span>未保存</span>
-  </header>
-  <div class="form">
-    <div class="form-row">
-      <label for="title-input">直播标题<kbd>T</kbd></label>
-      <input
-        id="title-input"
-        bind:this={input}
-        class="input"
-        class:invalid={!!error}
-        type="text"
-        placeholder="给直播起个标题"
-        autocomplete="off"
-        spellcheck="false"
-        aria-invalid={!!error}
-        aria-describedby="title-help"
-        bind:value={title}
-        oninput={() => (touched = true)}
-        onkeydown={(e) => e.key === "Enter" && !e.isComposing && void save()}
-      />
-      <div class="form-help" id="title-help">
-        <span class="error-text">{error}</span>
-        <span class="counter num" class:near={count > TITLE_MAX - 5 && count <= TITLE_MAX} class:over={count > TITLE_MAX}>{count}/{TITLE_MAX}</span>
+  <div class="section-body">
+    <div class="section-head">
+      <div>
+        <h3 class="section-title">直播间设置</h3>
+        <p class="section-desc">观众在直播间和推荐页看到的标题与分区。</p>
+      </div>
+      <span class="dirty-badge" class:show={dirty}><span class="dot dot-warn"></span>未保存</span>
+    </div>
+    <div class="form">
+      <div class="form-row">
+        <label for="title-input">直播标题<kbd>T</kbd></label>
+        <input
+          id="title-input"
+          bind:this={input}
+          class="input"
+          class:invalid={!!error}
+          type="text"
+          placeholder="给直播起个标题"
+          autocomplete="off"
+          spellcheck="false"
+          aria-invalid={!!error}
+          aria-describedby="title-help"
+          bind:value={title}
+          oninput={() => (touched = true)}
+          onkeydown={(e) => e.key === "Enter" && !e.isComposing && void save()}
+        />
+        <div class="form-help" id="title-help">
+          <span class="error-text">{error}</span>
+          <span class="counter num" class:near={count > TITLE_MAX - 5 && count <= TITLE_MAX} class:over={count > TITLE_MAX}>{count}/{TITLE_MAX}</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <span class="label">直播分区<kbd>A</kbd></span>
+        <button class="input area-btn" type="button" onclick={() => (ui.areaOpen = true)} title="选择分区 (A)">
+          <span class="area-value">
+            {#if area}<span class="muted">{area.group.name}</span><span class="crumb">/</span>{area.area.name}
+            {:else}<span class="muted">{areaId ? `分区 #${areaId}` : "选择分区"}</span>{/if}
+          </span>
+          <ChevronsUpDown class="icon" />
+        </button>
       </div>
     </div>
-    <div class="form-row">
-      <span class="label">直播分区<kbd>A</kbd></span>
-      <button class="input area-btn" type="button" onclick={() => (ui.areaOpen = true)} title="选择分区 (A)">
-        <span class="area-value">
-          {#if area}<span class="muted">{area.group.name}</span><span class="crumb">/</span>{area.area.name}
-          {:else}<span class="muted">{areaId ? `分区 #${areaId}` : "选择分区"}</span>{/if}
-        </span>
-        <ChevronRight class="icon" />
+  </div>
+  <footer class="section-foot">
+    <span>标题最多 {TITLE_MAX} 个字，保存后立即生效。</span>
+    <div class="actions">
+      <button class="btn btn-ghost btn-sm" class:invisible={!dirty} onclick={reset} disabled={!dirty || saving}>撤销</button>
+      <button class="btn btn-primary btn-sm" onclick={() => void save()} disabled={!dirty || !valid || saving}>
+        {#if saving}<span class="spinner"></span>保存中…{:else}保存{/if}
       </button>
     </div>
-  </div>
-  <footer class="card-foot">
-    <button class="btn btn-ghost" class:invisible={!dirty} onclick={reset} disabled={!dirty || saving}>撤销修改</button>
-    <button class="btn btn-secondary" onclick={() => void save()} disabled={!dirty || !valid || saving}>
-      {#if saving}<span class="spinner"></span>保存中…{:else}保存设置{/if}
-    </button>
   </footer>
 </section>
 
