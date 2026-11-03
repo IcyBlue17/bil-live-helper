@@ -19,6 +19,9 @@ func main() {
 	} else {
 		backend = bili.New()
 	}
+	// The configured name, BilLiveHelper, is the executable's; this is the
+	// one the app shows and keeps its data under.
+	mygo.App.SetName("Bil Live Helper")
 	app.Bind(backend)
 	// Checks GitHub releases 10s after launch and then daily; the window is
 	// in Chinese like the rest of the app.
