@@ -103,6 +103,17 @@ type RoomSettings struct {
 	AreaID int64  `json:"areaId"`
 }
 
+// Preferences are app options the user changes in the settings dialog.
+type Preferences struct {
+	// Notify shows a desktop notification for SCs and guards.
+	Notify bool `json:"notify"`
+	// NotifyGiftMin also notifies for gifts worth at least this many gold
+	// coins; 0 turns gift notifications off.
+	NotifyGiftMin int64 `json:"notifyGiftMin"`
+	// Blocked hides danmaku containing any of these words (case-insensitive).
+	Blocked []string `json:"blocked"`
+}
+
 // StartStage is a step of starting a broadcast.
 type StartStage string
 
@@ -146,6 +157,11 @@ const (
 	KindEnter   MessageKind = "enter"   // a viewer entered (欢迎…)
 	KindNotice  MessageKind = "notice"  // a room or platform notice
 	KindSystem  MessageKind = "system"  // the app's own status lines
+
+	KindSuperChat MessageKind = "superchat" // 醒目留言; SuperChat is set
+	KindGuard     MessageKind = "guard"     // 上舰 / 续费; Guard and Gift are set
+	KindFollow    MessageKind = "follow"    // a viewer followed the room
+	KindLike      MessageKind = "like"      // a viewer liked (点赞)
 )
 
 // Message is one item of the danmaku feed.
@@ -162,6 +178,44 @@ type Message struct {
 	Medal      *Medal      `json:"medal"`
 	Gift       *Gift       `json:"gift"`
 	Historical bool        `json:"historical"` // from the history API, not live
+
+	// Face is the sender's avatar URL, "" when unknown.
+	Face string `json:"face"`
+	// Emoticon is set when the danmaku is a single sticker (表情包弹幕).
+	Emoticon *Emoticon `json:"emoticon"`
+	// Emots maps inline emote tokens in Text, such as "[dog]", to images.
+	Emots map[string]Emoticon `json:"emots"`
+	// SuperChat is set for KindSuperChat.
+	SuperChat *SuperChat `json:"superChat"`
+}
+
+// Emoticon is an image shown in a danmaku or picked in the emote picker.
+type Emoticon struct {
+	// Token is what to send to post it: the emoticon_unique for stickers,
+	// or the text form such as "[dog]" for inline emotes.
+	Token  string `json:"token"`
+	Name   string `json:"name"`
+	URL    string `json:"url"`
+	Width  int    `json:"width"`
+	Height int    `json:"height"`
+}
+
+// EmoticonPackage is a group of emoticons available in the room.
+type EmoticonPackage struct {
+	ID    int64      `json:"id"`
+	Name  string     `json:"name"`
+	Cover string     `json:"cover"`
+	Items []Emoticon `json:"items"`
+}
+
+// SuperChat is a 醒目留言.
+type SuperChat struct {
+	// Price in yuan.
+	Price int `json:"price"`
+	// Seconds the SC stays pinned.
+	Duration int `json:"duration"`
+	// Background colour suggested by the server, like "#EDF5FF"; may be "".
+	Color string `json:"color"`
 }
 
 // Gift is the gift of a KindGift message.
@@ -189,7 +243,82 @@ type FeedEvent struct {
 	State   *ConnState `json:"state"`
 	// Popularity is the room's popularity from heartbeats, 0 when unknown.
 	Popularity int64 `json:"popularity"`
+	// Watched is the 看过 count (WATCHED_CHANGE), 0 when not reported.
+	Watched int64 `json:"watched"`
+	// Online is the high-energy online count (ONLINE_RANK_COUNT), 0 when not reported.
+	Online int64 `json:"online"`
+	// Likes is the room's total like count (LIKE_INFO_V3_UPDATE), 0 when not reported.
+	Likes int64 `json:"likes"`
+	// Stats is sent, at most once a second, whenever the session totals change.
+	Stats *SessionStats `json:"stats"`
 }
+
+// SessionStats are the totals counted since Danmaku.Watch connected
+// (live messages only, history excluded).
+type SessionStats struct {
+	Since      time.Time `json:"since"`
+	Danmaku    int       `json:"danmaku"`
+	Senders    int       `json:"senders"` // distinct danmaku senders
+	Enters     int       `json:"enters"`
+	Follows    int       `json:"follows"`
+	Likes      int       `json:"likes"`
+	Gifts      int       `json:"gifts"`
+	GiftValue  int64     `json:"giftValue"` // gold coins of paid gifts, guards and SCs (1000 = ¥1)
+	SuperChats int       `json:"superChats"`
+	Guards     int       `json:"guards"`
+	PeakOnline int64     `json:"peakOnline"`
+	// Samples is the online count once a minute, oldest first, at most 240.
+	Samples []OnlineSample `json:"samples"`
+}
+
+// OnlineSample is the online count at a time.
+type OnlineSample struct {
+	Time   time.Time `json:"time"`
+	Online int64     `json:"online"`
+}
+
+// ViewerCard describes a viewer, for the card shown when clicking a name.
+type ViewerCard struct {
+	UID       int64      `json:"uid"`
+	Name      string     `json:"name"`
+	Face      string     `json:"face"`
+	Sign      string     `json:"sign"`
+	Level     int        `json:"level"` // main-site level
+	Guard     GuardLevel `json:"guard"` // in this room
+	Medal     *Medal     `json:"medal"` // of this room, if worn
+	Followers int64      `json:"followers"`
+	Muted     bool       `json:"muted"` // currently muted in this room
+}
+
+// MutedUser is an entry of the room's mute (禁言) list.
+type MutedUser struct {
+	UID   int64  `json:"uid"`
+	Name  string `json:"name"`
+	Admin string `json:"admin"` // who muted them
+	// Until is when the mute ends, null when permanent.
+	Until *time.Time `json:"until"`
+	// ID identifies the entry for Unmute (block_id / tuid as the API needs).
+	ID int64 `json:"id"`
+}
+
+// RankUser is a row of the contribution (高能榜) or guard (大航海) list.
+type RankUser struct {
+	Rank  int        `json:"rank"`
+	UID   int64      `json:"uid"`
+	Name  string     `json:"name"`
+	Face  string     `json:"face"`
+	Score int64      `json:"score"` // contribution value; 0 for guards
+	Guard GuardLevel `json:"guard"`
+	Medal *Medal     `json:"medal"`
+}
+
+// RankKind picks a list for Live.Rank.
+type RankKind string
+
+const (
+	RankOnline RankKind = "online" // 高能榜 (current viewers by contribution)
+	RankGuard  RankKind = "guard"  // 大航海 members
+)
 
 // LogLevel is the severity of a log entry.
 type LogLevel string

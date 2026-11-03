@@ -35,6 +35,27 @@ export interface AuthState {
 /** ConnState is the state of the danmaku connection. */
 export type ConnState = "connecting" | "connected" | "reconnecting" | "closed";
 
+/** Emoticon is an image shown in a danmaku or picked in the emote picker. */
+export interface Emoticon {
+  /**
+   * Token is what to send to post it: the emoticon_unique for stickers,
+   * or the text form such as "[dog]" for inline emotes.
+   */
+  token: string;
+  name: string;
+  url: string;
+  width: number;
+  height: number;
+}
+
+/** EmoticonPackage is a group of emoticons available in the room. */
+export interface EmoticonPackage {
+  id: number;
+  name: string;
+  cover: string;
+  items: Emoticon[];
+}
+
 /**
  * FeedEvent is an item of the Danmaku.Watch channel: a message, or a change
  * of connection state.
@@ -44,6 +65,14 @@ export interface FeedEvent {
   state: ConnState | null;
   /** Popularity is the room's popularity from heartbeats, 0 when unknown. */
   popularity: number;
+  /** Watched is the 看过 count (WATCHED_CHANGE), 0 when not reported. */
+  watched: number;
+  /** Online is the high-energy online count (ONLINE_RANK_COUNT), 0 when not reported. */
+  online: number;
+  /** Likes is the room's total like count (LIKE_INFO_V3_UPDATE), 0 when not reported. */
+  likes: number;
+  /** Stats is sent, at most once a second, whenever the session totals change. */
+  stats: SessionStats | null;
 }
 
 /** Gift is the gift of a KindGift message. */
@@ -91,10 +120,49 @@ export interface Message {
   gift: Gift | null;
   /** from the history API, not live */
   historical: boolean;
+  /** Face is the sender's avatar URL, "" when unknown. */
+  face: string;
+  /** Emoticon is set when the danmaku is a single sticker (表情包弹幕). */
+  emoticon: Emoticon | null;
+  /** Emots maps inline emote tokens in Text, such as "[dog]", to images. */
+  emots: Record<string, Emoticon>;
+  /** SuperChat is set for KindSuperChat. */
+  superChat: SuperChat | null;
 }
 
 /** MessageKind is the kind of a danmaku feed item. */
-export type MessageKind = "danmaku" | "self" | "gift" | "enter" | "notice" | "system";
+export type MessageKind = "danmaku" | "self" | "gift" | "enter" | "notice" | "system" | "superchat" | "guard" | "follow" | "like";
+
+/** MutedUser is an entry of the room's mute (禁言) list. */
+export interface MutedUser {
+  uid: number;
+  name: string;
+  /** who muted them */
+  admin: string;
+  /** Until is when the mute ends, null when permanent. */
+  until: string | null;
+  /** ID identifies the entry for Unmute (block_id / tuid as the API needs). */
+  id: number;
+}
+
+/** OnlineSample is the online count at a time. */
+export interface OnlineSample {
+  time: string;
+  online: number;
+}
+
+/** Preferences are app options the user changes in the settings dialog. */
+export interface Preferences {
+  /** Notify shows a desktop notification for SCs and guards. */
+  notify: boolean;
+  /**
+   * NotifyGiftMin also notifies for gifts worth at least this many gold
+   * coins; 0 turns gift notifications off.
+   */
+  notifyGiftMin: number;
+  /** Blocked hides danmaku containing any of these words (case-insensitive). */
+  blocked: string[];
+}
 
 /** QRCode is a QR code to show the user. */
 export interface QRCode {
@@ -115,6 +183,21 @@ export interface QRUpdate {
   stage: QRStage;
   code: QRCode | null;
   message: string;
+}
+
+/** RankKind picks a list for Live.Rank. */
+export type RankKind = "online" | "guard";
+
+/** RankUser is a row of the contribution (高能榜) or guard (大航海) list. */
+export interface RankUser {
+  rank: number;
+  uid: number;
+  name: string;
+  face: string;
+  /** contribution value; 0 for guards */
+  score: number;
+  guard: GuardLevel;
+  medal: Medal | null;
 }
 
 /** RoomInfo describes the user's live room. */
@@ -141,6 +224,28 @@ export interface RoomSettings {
   areaId: number;
 }
 
+/**
+ * SessionStats are the totals counted since Danmaku.Watch connected
+ * (live messages only, history excluded).
+ */
+export interface SessionStats {
+  since: string;
+  danmaku: number;
+  /** distinct danmaku senders */
+  senders: number;
+  enters: number;
+  follows: number;
+  likes: number;
+  gifts: number;
+  /** gold coins of paid gifts, guards and SCs (1000 = ¥1) */
+  giftValue: number;
+  superChats: number;
+  guards: number;
+  peakOnline: number;
+  /** Samples is the online count once a minute, oldest first, at most 240. */
+  samples: OnlineSample[];
+}
+
 /** StartStage is a step of starting a broadcast. */
 export type StartStage = "requesting" | "faceAuth" | "live";
 
@@ -163,12 +268,39 @@ export interface StreamInfo {
   changed: boolean;
 }
 
+/** SuperChat is a 醒目留言. */
+export interface SuperChat {
+  /** Price in yuan. */
+  price: number;
+  /** Seconds the SC stays pinned. */
+  duration: number;
+  /** Background colour suggested by the server, like "#EDF5FF"; may be "". */
+  color: string;
+}
+
 /** User is the logged-in Bilibili account. */
 export interface User {
   uid: number;
   name: string;
   /** Face is the avatar URL (load it with referrerpolicy="no-referrer"). */
   face: string;
+}
+
+/** ViewerCard describes a viewer, for the card shown when clicking a name. */
+export interface ViewerCard {
+  uid: number;
+  name: string;
+  face: string;
+  sign: string;
+  /** main-site level */
+  level: number;
+  /** in this room */
+  guard: GuardLevel;
+  /** of this room, if worn */
+  medal: Medal | null;
+  followers: number;
+  /** currently muted in this room */
+  muted: boolean;
 }
 
 // ---- Services ----
@@ -191,9 +323,17 @@ export const Auth = {
 
 /** Live manages the room and the broadcast. */
 export const Live = {
+  /** Announcement returns the room announcement. */
+  announcement(): Promise<string> {
+    return call("Live.Announcement");
+  },
   /** Areas returns the area tree. */
   areas(): Promise<AreaGroup[]> {
     return call("Live.Areas");
+  },
+  /** Rank returns the 高能榜 or 大航海 list. */
+  rank(kind: RankKind): Promise<RankUser[]> {
+    return call("Live.Rank", kind);
   },
   /** Room fetches the user's room. */
   room(): Promise<RoomInfo> {
@@ -202,6 +342,10 @@ export const Live = {
   /** SaveSettings saves and applies the title and area. */
   saveSettings(settings: RoomSettings): Promise<RoomInfo> {
     return call("Live.SaveSettings", settings);
+  },
+  /** SetAnnouncement updates the room announcement. */
+  setAnnouncement(text: string): Promise<void> {
+    return call("Live.SetAnnouncement", text);
   },
   /** Settings returns the saved title and area. */
   settings(): Promise<RoomSettings> {
@@ -226,9 +370,33 @@ export const Live = {
 
 /** Danmaku reads and sends the room's comments. */
 export const Danmaku = {
+  /** Emoticons returns the emoticon packages usable in the room. */
+  emoticons(): Promise<EmoticonPackage[]> {
+    return call("Danmaku.Emoticons");
+  },
+  /** Mute mutes a viewer for hours (0 = until the broadcast ends). */
+  mute(uid: number, hours: number): Promise<void> {
+    return call("Danmaku.Mute", uid, hours);
+  },
+  /** Muted lists muted viewers. */
+  muted(): Promise<MutedUser[]> {
+    return call("Danmaku.Muted");
+  },
   /** Send posts a comment to the room. */
   send(text: string): Promise<void> {
     return call("Danmaku.Send", text);
+  },
+  /** SendEmoticon posts a sticker danmaku. */
+  sendEmoticon(token: string): Promise<void> {
+    return call("Danmaku.SendEmoticon", token);
+  },
+  /** Unmute lifts a mute. */
+  unmute(id: number): Promise<void> {
+    return call("Danmaku.Unmute", id);
+  },
+  /** Viewer returns a viewer's card. */
+  viewer(uid: number): Promise<ViewerCard> {
+    return call("Danmaku.Viewer", uid);
   },
   /**
    * Watch streams history, then live comments, gifts and connection states,
@@ -252,6 +420,14 @@ export const System = {
   /** OpenURL opens a URL in the default browser. */
   openURL(url: string): Promise<void> {
     return call("System.OpenURL", url);
+  },
+  /** Preferences returns the saved preferences. */
+  preferences(): Promise<Preferences> {
+    return call("System.Preferences");
+  },
+  /** SavePreferences saves and applies the preferences. */
+  savePreferences(p: Preferences): Promise<void> {
+    return call("System.SavePreferences", p);
   },
 } as const;
 

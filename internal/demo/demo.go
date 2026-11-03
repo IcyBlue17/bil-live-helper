@@ -212,6 +212,7 @@ func (b *Backend) Watch(ctx context.Context, send func(app.FeedEvent) error) err
 	if err := st(app.ConnConnected); err != nil {
 		return err
 	}
+	since := time.Now().Add(-83 * time.Minute)
 	for i := 8; ; i++ {
 		select {
 		case <-ctx.Done():
@@ -219,7 +220,11 @@ func (b *Backend) Watch(ctx context.Context, send func(app.FeedEvent) error) err
 		case <-time.After(time.Duration(700+rand.IntN(1600)) * time.Millisecond):
 		}
 		m := fakeMessage(i, time.Now())
-		if err := send(app.FeedEvent{Message: &m, Popularity: 18000 + int64(rand.IntN(900))}); err != nil {
+		ev := app.FeedEvent{Message: &m, Popularity: 18000 + int64(rand.IntN(900)), Online: 1300 + int64(rand.IntN(90)), Watched: 9421 + int64(i), Likes: 25310 + int64(i*3)}
+		if i%3 == 0 {
+			ev.Stats = fakeStats(since, i)
+		}
+		if err := send(ev); err != nil {
 			return nil
 		}
 	}
@@ -229,6 +234,23 @@ func fakeMessage(i int, t time.Time) app.Message {
 	n := names[i%len(names)]
 	m := app.Message{ID: fmt.Sprint(i), Kind: app.KindDanmaku, Time: t, UID: int64(1000 + i%len(names)), Name: n, Text: lines[(i*7)%len(lines)], UserLevel: 5 + i%30}
 	switch {
+	case i%17 == 3:
+		m.Kind, m.Text = app.KindSuperChat, "主播唱得太好了！下次可以唱《春日影》吗"
+		m.SuperChat = &app.SuperChat{Price: 30, Duration: 60, Color: "#EDF5FF"}
+		m.Medal = &app.Medal{Name: "迷子", Level: 12}
+	case i%19 == 7:
+		g := app.Gift{Name: "舰长", Num: 1, Price: 198000}
+		m.Kind, m.Gift, m.Guard, m.Text = app.KindGuard, &g, app.GuardJianzha, ""
+	case i%7 == 6:
+		m.Kind, m.Text = app.KindFollow, ""
+	case i%10 == 9:
+		m.Kind, m.Text = app.KindLike, ""
+	case i%15 == 2:
+		e := emoticons[1].Items[i%3]
+		m.Emoticon, m.Text = &e, e.Name
+	case i%6 == 2:
+		m.Text = "哈哈哈[dog][花]"
+		m.Emots = map[string]app.Emoticon{"[dog]": emoticons[0].Items[0], "[花]": emoticons[0].Items[1]}
 	case i%11 == 5:
 		g := gifts[i%len(gifts)]
 		m.Kind, m.Gift, m.Text = app.KindGift, &g, ""

@@ -1,0 +1,17 @@
+{
+  "cmd": "SEND_GIFT",
+  "data": {
+    "giftName": "辣条",
+    "giftId": 1,
+    "num": 10,
+    "uname": "橘子汽水",
+    "uid": 7654321,
+    "face": "https://i2.hdslb.com/bfs/face/x.jpg",
+    "coin_type": "gold",
+    "total_coin": 10000,
+    "price": 1000,
+    "guard_level": 0,
+    "timestamp": 1730000005,
+    "action": "喂食"
+  }
+}
