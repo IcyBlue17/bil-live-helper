@@ -419,8 +419,8 @@ class UiStore {
   aboutOpen = $state(false);
   prefsOpen = $state(false);
   areaOpen = $state(false);
-  /** The tab of the secondary card (本场数据, 榜单, …). */
-  sideTab = $state<"stats" | "rank" | "announce" | "muted">("stats");
+  /** The page tab under the top bar (概览, 本场数据, 榜单, …). */
+  tab = $state<"overview" | "stats" | "rank" | "announce" | "muted">("overview");
   /** Which column shows in the narrow (tabbed) layout. */
   narrowTab = $state<"control" | "danmaku">("control");
   /** The viewer whose card is open, and the element it points at. */

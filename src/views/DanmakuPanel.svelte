@@ -10,6 +10,7 @@
   import SendBox from "./SendBox.svelte";
 
   const connLabel = { connecting: "连接中", connected: "已连接", reconnecting: "重连中", closed: "未连接" } as const;
+  const connDot = { connecting: "dot-busy", connected: "dot-ok", reconnecting: "dot-busy", closed: "" } as const;
 
   let scroller: HTMLDivElement | undefined = $state();
   let atBottom = true;
@@ -63,10 +64,10 @@
 
 <section class="card danmaku-panel">
   <header class="card-head">
-    <h3><MessageSquareText class="icon" />弹幕</h3>
+    <h3>弹幕</h3>
     <div class="card-tools">
-      <span class="stat stat-sm" title="人气值"><Flame class="icon" />{#if feed.popularity}<NumberFlow value={feed.popularity} format={compactFormat} locales="zh-CN" />{:else}—{/if}</span>
-      <span class="conn-pill conn-{feed.conn}"><span class="conn-dot"></span>{connLabel[feed.conn]}</span>
+      <span class="stat-sm num" title="人气值"><Flame class="icon" />{#if feed.popularity}<NumberFlow value={feed.popularity} format={compactFormat} locales="zh-CN" />{:else}—{/if}</span>
+      <span class="conn conn-{feed.conn}"><span class="dot {connDot[feed.conn]}"></span>{connLabel[feed.conn]}</span>
     </div>
   </header>
   <div class="feed">

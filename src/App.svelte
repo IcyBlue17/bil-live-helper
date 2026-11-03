@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { RefreshCw } from "@lucide/svelte";
+  import { CircleAlert, RefreshCw } from "@lucide/svelte";
   import { Toaster } from "svelte-sonner";
   import Mark from "./components/Mark.svelte";
   import { app, boot, copy, logs, refreshRoom, streamText, toggleLive, ui } from "./lib/state.svelte";
   import { rise } from "./lib/motion";
+  import { theme } from "./lib/theme.svelte";
   import Dashboard from "./views/Dashboard.svelte";
   import Login from "./views/Login.svelte";
   import About from "./views/About.svelte";
@@ -40,6 +41,7 @@
       case "KeyT":
         return run(() => {
           ui.narrowTab = "control";
+          ui.tab = "overview";
           ui.focusTitle++;
         });
       case "KeyA":
@@ -66,10 +68,11 @@
     {#if app.phase === "boot"}
       <div class="boot">
         <div class="skel-topbar"><span class="skel skel-mark"></span><span class="skel skel-line w-40"></span><span class="skel skel-pill"></span></div>
+        <div class="skel-tabs">{#each { length: 5 } as _, i (i)}<span class="skel skel-line w-12"></span>{/each}</div>
         <div class="skel-columns">
           <div class="skel-col">
             <div class="skel skel-card tall"></div>
-            <div class="skel-row"><div class="skel skel-card"></div><div class="skel skel-card"></div></div>
+            <div class="skel skel-card"></div>
           </div>
           <div class="skel skel-card side"></div>
         </div>
@@ -78,12 +81,15 @@
       <Login />
     {:else if app.phase === "error"}
       <div class="login-screen">
-        <section class="login-card error-card">
-          <Mark size={40} />
-          <h1>无法连接后端</h1>
-          <p class="muted">{app.bootError}</p>
-          <button class="btn btn-primary" onclick={() => void boot()}><RefreshCw class="icon" />重试</button>
-        </section>
+        <div class="login-top"><Mark size={24} /><span>Bil Live Helper</span></div>
+        <main class="login-main">
+          <section class="login-card error-card">
+            <span class="empty-icon"><CircleAlert class="icon" /></span>
+            <h1>无法连接后端</h1>
+            <p class="muted">{app.bootError}</p>
+            <button class="btn btn-primary" onclick={() => void boot()}><RefreshCw class="icon" />重试</button>
+          </section>
+        </main>
       </div>
     {:else}
       <Dashboard />
@@ -92,4 +98,4 @@
 {/key}
 
 <About />
-<Toaster theme="dark" position="top-center" offset={72} duration={2600} closeButton={false} toastOptions={{ class: "toast" }} />
+<Toaster theme={theme.resolved} position="top-center" offset={64} duration={2600} closeButton={false} toastOptions={{ class: "toast" }} />

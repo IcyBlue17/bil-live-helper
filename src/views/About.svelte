@@ -29,32 +29,33 @@
   ];
 </script>
 
-<Modal bind:open={ui.aboutOpen} title="关于" width={560} class="about">
+<Modal bind:open={ui.aboutOpen} title="关于" width={580} class="about">
   <div class="modal-body">
     <div class="about-brand">
-      <Mark size={44} />
+      <Mark size={40} />
       <div>
-        <h3>Bil Live Helper <span class="badge num">v{app.info?.version ?? "?"}</span>{#if app.info?.demo}<span class="badge badge-amber">演示模式</span>{/if}</h3>
+        <h3>Bil Live Helper <span class="badge mono">v{app.info?.version ?? "?"}</span>{#if app.info?.demo}<span class="badge badge-amber">演示模式</span>{/if}</h3>
         <p class="muted">B 站直播助手：扫码登录、一键开播、获取推流码、收发弹幕。</p>
       </div>
+    </div>
+    <h4>更新</h4>
+    <div class="update-row">
+      <span class="update-state">
+        <span class="dot {!update ? 'dot-busy' : !update.canUpdate ? '' : update.available ? 'dot-info' : 'dot-ok'}"></span>
+        {#if !update}检查中…
+        {:else if !update.canUpdate}当前版本不支持自动更新（开发版或包管理器安装）
+        {:else if update.available}发现新版本 <span class="mono">v{update.available}</span>
+        {:else}已是最新版本{/if}
+      </span>
+      {#if update?.canUpdate}
+        <button class="btn btn-secondary btn-sm" onclick={() => System.checkForUpdates()}><RefreshCw class="icon" />检查更新</button>
+      {/if}
     </div>
     <h4>快捷键</h4>
     <div class="shortcut-grid">
       {#each shortcuts as [keys, what] (what)}
         <div class="shortcut"><span>{what}</span><Kbd {keys} /></div>
       {/each}
-    </div>
-    <h4>更新</h4>
-    <div class="shortcut">
-      <span>
-        {#if !update}检查中…
-        {:else if !update.canUpdate}当前版本不支持自动更新（开发版或包管理器安装）
-        {:else if update.available}发现新版本 v{update.available}
-        {:else}已是最新版本{/if}
-      </span>
-      {#if update?.canUpdate}
-        <button class="btn btn-secondary" onclick={() => System.checkForUpdates()}><RefreshCw class="icon" />检查更新</button>
-      {/if}
     </div>
     <h4>配置文件</h4>
     <code class="config-path">{app.info?.configPath ?? "—"}</code>

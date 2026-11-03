@@ -1,4 +1,5 @@
 import { mount } from "svelte";
+import "./lib/theme.svelte";
 import "./styles/base.css";
 import "./styles/components.css";
 import "./styles/login.css";
