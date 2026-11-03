@@ -1,0 +1,19 @@
+{
+  "cmd": "DANMU_MSG",
+  "info": [
+    [
+      0, 1, 25, 16777215, 1730000200000, 0, 0, "def", 0, 0, 0, "", 0,
+      "{}",
+      "{}",
+      {"user": {"uid": 22, "base": {"face": "", "name": "柚"}},
+       "extra": "{\"emots\":{\"[热词系列_妙啊]\":{\"emoji\":\"[热词系列_妙啊]\",\"emoticon_unique\":\"hot_1\",\"url\":\"https://i0.hdslb.com/e1.png\",\"width\":36,\"height\":36},\"[doge]\":{\"emoji\":\"[doge]\",\"emoticon_unique\":\"emoji_0x1f436\",\"url\":\"https://i0.hdslb.com/e2.png\",\"width\":20,\"height\":20}}}"}
+    ],
+    "[热词系列_妙啊] 好听 [doge]",
+    [22, "柚", 0],
+    [],
+    [10, 0, 9868950, ">50000"],
+    [],
+    "",
+    0
+  ]
+}

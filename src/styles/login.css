@@ -1,0 +1,119 @@
+/* The login and boot-error screens. */
+.login-screen {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  overflow: auto;
+  background:
+    radial-gradient(600px 360px at 50% 18%, rgba(251, 114, 153, 0.08), transparent 70%),
+    var(--bg);
+}
+
+.login-card {
+  width: 420px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 32px 28px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.login-brand .mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+}
+.login-brand h1 {
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.login-brand p {
+  font-size: 13px;
+}
+
+.login-intro {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-2);
+}
+
+.login-card .qr-tile {
+  margin-top: 4px;
+}
+
+.login-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.login-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-3);
+  transition: color var(--t) var(--ease);
+}
+.login-steps b {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line-2);
+  transition: background-color var(--t) var(--ease), border-color var(--t) var(--ease), color var(--t) var(--ease);
+}
+.login-steps li.active {
+  color: var(--text);
+}
+.login-steps li.active b {
+  border-color: var(--pink);
+  color: var(--pink);
+  background: var(--pink-soft);
+}
+.login-steps li.done {
+  color: var(--text-2);
+}
+.login-steps li.done b {
+  border-color: transparent;
+  background: rgba(60, 207, 142, 0.16);
+  color: var(--green);
+}
+
+.login-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  font-size: 12px;
+}
+
+.error-card {
+  align-items: center;
+  text-align: center;
+}
+.error-card h1 {
+  font-size: 18px;
+}

@@ -1,0 +1,19 @@
+{
+  "cmd": "DANMU_MSG",
+  "info": [
+    [
+      0, 1, 25, 16777215, 1730000100000, 0, 0, "abc", 0, 0, 0, "", 0,
+      "{\"emoticon_unique\":\"official_124\",\"url\":\"https://i0.hdslb.com/bfs/live/emo.png\",\"width\":100,\"height\":100}",
+      "{}",
+      {"user": {"uid": 1234567, "base": {"face": "https://i0.hdslb.com/face.jpg", "name": "晚风"}},
+       "extra": "{\"emoticon_unique\":\"official_124\",\"dm_type\":1,\"bulge_display\":0,\"emots\":null,\"msg\":\"\"}"}
+    ],
+    "[表情]打call",
+    [1234567, "晚风", 0],
+    [],
+    [40, 0, 10546140, ">50000"],
+    [],
+    "",
+    0
+  ]
+}

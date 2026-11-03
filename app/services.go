@@ -58,6 +58,19 @@ func (s *Live) Stop(ctx context.Context) error { return s.b.Stop(ctx) }
 // Stream returns the stored RTMP address and key, null when there is none.
 func (s *Live) Stream() (*StreamInfo, error) { return s.b.Stream() }
 
+// Announcement returns the room announcement.
+func (s *Live) Announcement(ctx context.Context) (string, error) { return s.b.Announcement(ctx) }
+
+// SetAnnouncement updates the room announcement.
+func (s *Live) SetAnnouncement(ctx context.Context, text string) error {
+	return s.b.SetAnnouncement(ctx, text)
+}
+
+// Rank returns the 高能榜 or 大航海 list.
+func (s *Live) Rank(ctx context.Context, kind RankKind) ([]RankUser, error) {
+	return s.b.Rank(ctx, kind)
+}
+
 // Danmaku reads and sends the room's comments.
 type Danmaku struct{ b Backend }
 
@@ -70,6 +83,32 @@ func (s *Danmaku) Watch(ctx context.Context, events *mygo.Channel[FeedEvent]) er
 // Send posts a comment to the room.
 func (s *Danmaku) Send(ctx context.Context, text string) error { return s.b.SendDanmaku(ctx, text) }
 
+// Emoticons returns the emoticon packages usable in the room.
+func (s *Danmaku) Emoticons(ctx context.Context) ([]EmoticonPackage, error) {
+	return s.b.Emoticons(ctx)
+}
+
+// SendEmoticon posts a sticker danmaku.
+func (s *Danmaku) SendEmoticon(ctx context.Context, token string) error {
+	return s.b.SendEmoticon(ctx, token)
+}
+
+// Viewer returns a viewer's card.
+func (s *Danmaku) Viewer(ctx context.Context, uid int64) (ViewerCard, error) {
+	return s.b.Viewer(ctx, uid)
+}
+
+// Mute mutes a viewer for hours (0 = until the broadcast ends).
+func (s *Danmaku) Mute(ctx context.Context, uid int64, hours int) error {
+	return s.b.Mute(ctx, uid, hours)
+}
+
+// Unmute lifts a mute.
+func (s *Danmaku) Unmute(ctx context.Context, id int64) error { return s.b.Unmute(ctx, id) }
+
+// Muted lists muted viewers.
+func (s *Danmaku) Muted(ctx context.Context) ([]MutedUser, error) { return s.b.Muted(ctx) }
+
 // System has app-level helpers.
 type System struct{ b Backend }
 
@@ -80,6 +119,12 @@ func (s *System) Info() AppInfo {
 
 // Copy puts text on the clipboard.
 func (s *System) Copy(text string) { mygo.Clipboard.WriteText(text) }
+
+// Preferences returns the saved preferences.
+func (s *System) Preferences() (Preferences, error) { return s.b.Preferences() }
+
+// SavePreferences saves and applies the preferences.
+func (s *System) SavePreferences(p Preferences) error { return s.b.SavePreferences(p) }
 
 // OpenURL opens a URL in the default browser.
 func (s *System) OpenURL(url string) error { return mygo.Shell.OpenExternal(url) }

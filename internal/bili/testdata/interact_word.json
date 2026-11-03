@@ -1,0 +1,10 @@
+{
+  "cmd": "INTERACT_WORD",
+  "data": {
+    "uid": 9988776,
+    "uname": "不睡觉的猫",
+    "msg_type": 1,
+    "timestamp": 1730000010,
+    "isadmin": 0
+  }
+}
